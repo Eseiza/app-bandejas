@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>APP BANDEJAS</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ══════════ LOGIN ══════════ -->
+<div id="screen-login">
+  <div class="login-box">
+    <div class="login-title">BANDEJAS</div>
+    <div class="login-sub">SISTEMA DE GESTIÓN DE RUTAS</div>
+    <div class="field">
+      <label>Seleccioná tu rol</label>
+      <div class="role-grid">
+        <div class="role-btn" data-role="chofer">
+          <span class="r-icon">🚛</span>
+          <span class="r-name">Chofer</span>
+          <span class="r-desc">Registra viajes</span>
+        </div>
+        <div class="role-btn" data-role="visualizador">
+          <span class="r-icon">👁️</span>
+          <span class="r-name">Visualizador</span>
+          <span class="r-desc">Solo lectura</span>
+        </div>
+      </div>
+    </div>
+    <div class="field">
+      <label>Usuario</label>
+      <input type="text" id="login-user" placeholder="Tu usuario">
+    </div>
+    <div class="field">
+      <label>Contraseña</label>
+      <input type="password" id="login-pass" placeholder="••••••">
+    </div>
+    <button class="btn" id="login-btn">INGRESAR</button>
+  </div>
+</div>
+
+<!-- ══════════ SCREEN CHOFER ══════════ -->
+<div id="screen-chofer" style="display:none;flex-direction:column;min-height:100vh;width:100%">
+  <header>
+    <div class="logo">BAN<span>DEJAS</span></div>
+    <div class="hbadge">
+      <span id="chofer-nombre">—</span>
+      <span class="role-tag chofer">CHOFER</span>
+    </div>
+  </header>
+
+  <!-- INICIO -->
+  <div id="pantalla-inicio" class="chofer-screen app-content">
+    <div class="section-title">RESUMEN DE HOY</div>
+    <div class="kpi-row">
+      <div class="kpi green"><div class="kpi-val" id="resumen-viajes">0</div><div class="kpi-label">Viajes</div></div>
+      <div class="kpi"><div class="kpi-val" id="resumen-salen">0</div><div class="kpi-label">Salen</div></div>
+      <div class="kpi"><div class="kpi-val" id="resumen-vuelven">0</div><div class="kpi-label">Vuelven</div></div>
+    </div>
+    <button class="btn btn-big" id="btn-nuevo-viaje">+ INICIAR NUEVO VIAJE</button>
+  </div>
+
+  <!-- NUEVO VIAJE -->
+  <div id="pantalla-nuevo-viaje" class="chofer-screen app-content" style="display:none">
+    <div class="back-bar">
+      <button class="btn-back" id="btn-cancelar-viaje">← Volver</button>
+      <div class="section-title" id="nv-fecha">—</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Datos del viaje</div>
+      <div class="field">
+        <label>Camión</label>
+        <select id="nv-camion"><option value="">— Seleccioná un camión —</option></select>
+      </div>
+      <div class="field">
+        <label>Chofer</label>
+        <select id="nv-chofer"><option value="">— Seleccioná un chofer —</option></select>
+      </div>
+      <div class="field mb-0">
+        <label>Bandejas que salen</label>
+        <input type="number" inputmode="numeric" id="nv-bandejas" placeholder="0" min="0">
+      </div>
+    </div>
+    <button class="btn btn-green" id="btn-iniciar-viaje">INICIAR VIAJE →</button>
+  </div>
+
+  <!-- VIAJE EN CURSO -->
+  <div id="pantalla-viaje" class="chofer-screen app-content" style="display:none">
+    <div class="back-bar">
+      <button class="btn-back" id="btn-volver-inicio">← Salir</button>
+      <div class="viaje-info">
+        <span class="text-accent text-mono" id="viaje-camion">—</span>
+        <span class="text-muted text-mono" style="font-size:11px"> · <span id="viaje-chofer">—</span> · <span id="viaje-bandejas">—</span> bandejas</span>
+      </div>
+    </div>
+    <div class="card add-cliente-card">
+      <div class="card-title">Agregar cliente al viaje</div>
+      <div class="add-cliente-row">
+        <select id="cliente-select"><option value="">— Seleccioná un cliente —</option></select>
+        <button class="btn btn-sm btn-green" id="btn-agregar-cliente">AGREGAR</button>
+      </div>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <div style="padding:14px 16px;border-bottom:1px solid var(--border)">
+        <div class="card-title mb-0">Clientes del viaje</div>
+      </div>
+      <div id="viaje-clientes-list"></div>
+    </div>
+    <button class="btn btn-danger" id="btn-cerrar-viaje">CERRAR VIAJE ✓</button>
+  </div>
+</div>
+
+<!-- ══════════ SCREEN VISUALIZADOR ══════════ -->
+<div id="screen-vis" style="display:none;flex-direction:column;min-height:100vh">
+  <header>
+    <div class="logo">BAN<span>DEJAS</span></div>
+    <div class="hbadge">
+      <span id="vis-nombre">—</span>
+      <span class="role-tag vis">VISUALIZADOR</span>
+    </div>
+  </header>
+
+  <!-- TABS -->
+  <div class="vis-tabs">
+    <div class="vis-tab active" data-tab="registros">📋 Registros</div>
+    <div class="vis-tab" data-tab="deudas">📦 Deudas</div>
+  </div>
+
+  <!-- TAB: REGISTROS -->
+  <div id="tab-registros" class="vis-tab-content app-content active">
+    <div class="section-header">
+      <div class="section-title" style="margin:0">REGISTROS</div>
+      <button class="btn btn-sm" id="btn-refresh-vis">↻</button>
+    </div>
+
+    <div class="kpi-row">
+      <div class="kpi green"><div class="kpi-val" id="vis-kpi-viajes">0</div><div class="kpi-label">Viajes</div></div>
+      <div class="kpi"><div class="kpi-val" id="vis-kpi-salen">0</div><div class="kpi-label">Salen</div></div>
+      <div class="kpi"><div class="kpi-val" id="vis-kpi-vuelven">0</div><div class="kpi-label">Vuelven</div></div>
+    </div>
+
+    <!-- FILTROS -->
+    <div class="card">
+      <div class="card-title">Filtros</div>
+      <div class="filtros-grid">
+        <div class="field mb-0">
+          <label>Fecha desde</label>
+          <input type="date" id="filtro-desde">
+        </div>
+        <div class="field mb-0">
+          <label>Fecha hasta</label>
+          <input type="date" id="filtro-hasta">
+        </div>
+        <div class="field mb-0">
+          <label>Cliente</label>
+          <select id="filtro-cliente">
+            <option value="">Todos</option>
+          </select>
+        </div>
+        <div class="field mb-0">
+          <label>Chofer</label>
+          <select id="filtro-chofer">
+            <option value="">Todos</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:14px">
+        <button class="btn btn-sm btn-green" id="btn-filtrar" style="flex:1">FILTRAR</button>
+        <button class="btn btn-sm btn-outline" id="btn-limpiar-filtros">LIMPIAR</button>
+      </div>
+    </div>
+
+    <div class="card" style="padding:0;overflow:hidden;overflow-x:auto">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Fecha</th><th>Camión</th><th>Chofer</th>
+            <th>Cliente</th><th>Dejan</th><th>Devuelven</th><th>Dif.</th>
+          </tr>
+        </thead>
+        <tbody id="vis-tbody">
+          <tr><td colspan="7" class="cell-center text-muted">Sin registros aún</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TAB: DEUDAS -->
+  <div id="tab-deudas" class="vis-tab-content app-content" style="display:none">
+    <div class="section-header">
+      <div class="section-title" style="margin:0">DEUDA DE BANDEJAS</div>
+      <button class="btn btn-sm" id="btn-refresh-deudas">↻</button>
+    </div>
+
+    <div class="card" style="padding:0;overflow:hidden">
+      <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+        <div class="card-title mb-0">Bandejas pendientes por cliente</div>
+      </div>
+      <div id="deudas-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EDITAR DEUDA -->
+<div id="modal-overlay" class="modal-overlay" style="display:none">
+  <div class="modal">
+    <div class="modal-title">EDITAR DEUDA</div>
+    <div class="modal-cliente" id="modal-cliente-nombre">—</div>
+    <div class="field">
+      <label>Bandejas que adeuda</label>
+      <input type="number" inputmode="numeric" id="modal-deuda-input" min="0" placeholder="0">
+    </div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn btn-green" id="modal-guardar" style="flex:1;font-size:16px;padding:12px">GUARDAR</button>
+      <button class="btn btn-outline" id="modal-cancelar" style="flex:1;font-size:16px;padding:12px">CANCELAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
