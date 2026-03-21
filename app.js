@@ -4,7 +4,7 @@
 
 // ── USUARIOS ──
 const USERS = {
-  "camionero1": { password: "chofer.2026",  role: "chofer",       nombre: "Fabio"    },
+  "camionero1": { password: "chofer.2026",  role: "chofer",       nombre: "CEL1"    },
   "camionero2": { password: "chofer.2026",  role: "chofer",       nombre: "Pepito"   },
   "Admin":      { password: "Admin.2026",   role: "visualizador", nombre: "Romero N" },
 };
