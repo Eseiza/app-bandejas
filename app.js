@@ -4,9 +4,14 @@
 
 // ── USUARIOS ──
 const USERS = {
-  "camionero1": { password: "chofer.2026",  role: "chofer",       nombre: "CEL1"    },
-  "camionero2": { password: "chofer.2026",  role: "chofer",       nombre: "Pepito"   },
-  "Admin":      { password: "Admin.2026",   role: "visualizador", nombre: "Romero N" },
+  "camionero1": { password: "chofer.2026",  role: "chofer",       nombre: "CEL1"   },
+  "camionero2": { password: "chofer.2026",  role: "chofer",       nombre: "CEL2"   },
+  "camionero3": { password: "chofer.2026",  role: "chofer",       nombre: "CEL3"   },
+  "camionero4": { password: "chofer.2026",  role: "chofer",       nombre: "CEL4"   },
+  "camionero5": { password: "chofer.2026",  role: "chofer",       nombre: "CEL5"   },
+  "camionero6": { password: "chofer.2026",  role: "chofer",       nombre: "CEL6"   },
+  "camionero7": { password: "chofer.2026",  role: "chofer",       nombre: "CEL7"   }, 
+  "Admin":      { password: "Admin.2026",   role: "visualizador", nombre: "Romero" },
 };
 
 // ── CAMIONES ──
