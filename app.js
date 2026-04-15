@@ -11,12 +11,15 @@ const USERS = {
 
 // ── CAMIONES ──
 const CAMIONES = [
-  "CAM-01 · AA 123 BB",
-  "CAM-02 · BC 456 CD",
-  "CAM-03 · DE 789 EF",
-  "CAM-04 · FG 321 GH",
-  "CAM-05 · HI 654 IJ",
-  "CAM-06 · JK 987 KL",
+  "Mercedes Benz ATEGO 1418 · KSB 077",
+  "Mercedes Benz 710 · HSH 342",
+  "Mercedes Benz 710 · GWI 653",
+  "Mercedes Benz ATEGO 1418 · JUT 069",
+  "Mercedes Benz ATEGO 1721 · AD 884 UR",
+  "Mercedes Benz ATEGO · AE 203 YU",
+  "Mercedes Benz ATEGO 1721 · AH 762 MP",
+  "*MB ACCELOV1016 · AG 915 RC*",
+  "*MB ATEGO 1721*"
 ];
 
 // ── CHOFERES ──
