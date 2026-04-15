@@ -29,14 +29,11 @@ const CAMIONES = [
 
 // ── CHOFERES ──
 const CHOFERES = [
-  "Martín González",
-  "Roberto Sánchez",
-  "Diego Fernández",
-  "Carlos Romero",
-  "Luis Pérez",
-  "Sergio Torres",
-  "Pablo Ramírez",
-  "Gustavo Medina",
+  "FABIO LUZZI",
+  "NAHUEL DOMINGUEZ",
+  "ARIEL SOSA",
+  "VILLAVERDE MAURO",
+  "FERNANDEZ MAURO"
 ];
 
 // ── CLIENTES ──
