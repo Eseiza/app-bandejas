@@ -1,7 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
 import {
   getFirestore, collection, doc,
-  addDoc, setDoc, getDoc, getDocs,
+  addDoc, setDoc, updateDoc, getDoc, getDocs,
   deleteDoc, onSnapshot, query, orderBy
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
@@ -257,7 +257,7 @@ document.getElementById('btn-nuevo-viaje').addEventListener('click', () => {
 
 document.getElementById('btn-cancelar-viaje').addEventListener('click', mostrarPantallaInicio);
 
-document.getElementById('btn-iniciar-viaje').addEventListener('click', () => {
+document.getElementById('btn-iniciar-viaje').addEventListener('click', async () => {
   const camion   = document.getElementById('nv-camion').value.trim();
   const chofer   = document.getElementById('nv-chofer').value.trim();
   const bandejas = parseInt(document.getElementById('nv-bandejas').value) || 0;
@@ -265,16 +265,36 @@ document.getElementById('btn-iniciar-viaje').addEventListener('click', () => {
   if (!chofer)   { showToast('Seleccioná un chofer', true); return; }
   if (!bandejas) { showToast('Ingresá las bandejas que salen', true); return; }
 
-  state.viajeActivo = {
-    timestamp:     Date.now(),
-    fecha:         new Date().toISOString(),
+  const datos = {
+    timestamp:      Date.now(),
+    fecha:          new Date().toISOString(),
     camion,
     chofer,
     bandejas_salen: bandejas,
-    clientes:      [],
+    clientes:       [],
+    cerrado:        false,
   };
-  mostrarPantallaViaje();
+
+  try {
+    const ref = await addDoc(collection(db, COL_VIAJES), datos);
+    state.viajeActivo = { ...datos, firestoreId: ref.id };
+    mostrarPantallaViaje();
+  } catch (e) {
+    showToast('Error al crear viaje: ' + e.message, true);
+  }
 });
+
+/* Sincroniza el viajeActivo a Firestore sin bloquear la UI */
+async function syncViaje() {
+  if (!state.viajeActivo?.firestoreId) return;
+  try {
+    await updateDoc(doc(db, COL_VIAJES, state.viajeActivo.firestoreId), {
+      clientes: state.viajeActivo.clientes,
+    });
+  } catch (e) {
+    showToast('Error al sincronizar: ' + e.message, true);
+  }
+}
 
 /* ── VIAJE EN CURSO ── */
 function mostrarPantallaViaje() {
@@ -304,6 +324,7 @@ document.getElementById('btn-agregar-cliente').addEventListener('click', () => {
   renderClientesViaje();
   poblarDesplegable();
   sel.value = '';
+  syncViaje();
 });
 
 function renderClientesViaje() {
@@ -328,12 +349,12 @@ function renderClientesViaje() {
           <div class="cl-input-group">
             <span class="cl-input-label">Dejan</span>
             <input class="cl-input" type="number" inputmode="numeric" min="0" placeholder="0" value="${cl.dejan}"
-              oninput="state.viajeActivo.clientes[${i}].dejan=this.value">
+              oninput="state.viajeActivo.clientes[${i}].dejan=this.value;syncViaje()">
           </div>
           <div class="cl-input-group">
             <span class="cl-input-label">Devuelven</span>
             <input class="cl-input" type="number" inputmode="numeric" min="0" placeholder="0" value="${cl.devuelven}"
-              oninput="state.viajeActivo.clientes[${i}].devuelven=this.value">
+              oninput="state.viajeActivo.clientes[${i}].devuelven=this.value;syncViaje()">
           </div>
         </div>
         <div class="badge ${cl.done ? 'ok' : 'pend'}" onclick="toggleDone(${i})">
@@ -347,12 +368,14 @@ function renderClientesViaje() {
 window.toggleDone = function(i) {
   state.viajeActivo.clientes[i].done = !state.viajeActivo.clientes[i].done;
   renderClientesViaje();
+  syncViaje();
 };
 
 window.quitarCliente = function(i) {
   state.viajeActivo.clientes.splice(i, 1);
   renderClientesViaje();
   poblarDesplegable();
+  syncViaje();
 };
 
 document.getElementById('btn-cerrar-viaje').addEventListener('click', async () => {
@@ -362,18 +385,27 @@ document.getElementById('btn-cerrar-viaje').addEventListener('click', async () =
   if (pend > 0 && !confirm(`Hay ${pend} cliente(s) pendientes. ¿Cerrar igual?`)) return;
 
   try {
-    await addDoc(collection(db, COL_VIAJES), { ...state.viajeActivo });
+    await updateDoc(doc(db, COL_VIAJES, state.viajeActivo.firestoreId), {
+      clientes: state.viajeActivo.clientes,
+      cerrado:  true,
+    });
     state.viajeActivo = null;
     showToast('✓ Viaje cerrado y guardado');
     mostrarPantallaInicio();
   } catch (e) {
-    showToast('Error al guardar: ' + e.message, true);
+    showToast('Error al cerrar viaje: ' + e.message, true);
   }
 });
 
-document.getElementById('btn-volver-inicio').addEventListener('click', () => {
-  if (state.viajeActivo && state.viajeActivo.clientes.length > 0) {
-    if (!confirm('¿Salir sin cerrar el viaje? Los datos no se guardarán.')) return;
+document.getElementById('btn-volver-inicio').addEventListener('click', async () => {
+  if (state.viajeActivo) {
+    if (state.viajeActivo.clientes.length > 0) {
+      if (!confirm('¿Salir? El viaje quedará guardado como borrador en Firestore.')) return;
+    }
+    /* Borramos el viaje vacío o incompleto si el chofer sale sin cerrarlo */
+    if (state.viajeActivo.clientes.length === 0) {
+      try { await deleteDoc(doc(db, COL_VIAJES, state.viajeActivo.firestoreId)); } catch {}
+    }
   }
   state.viajeActivo = null;
   mostrarPantallaInicio();
