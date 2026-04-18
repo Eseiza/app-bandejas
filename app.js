@@ -285,7 +285,7 @@ document.getElementById('btn-iniciar-viaje').addEventListener('click', async () 
 });
 
 /* Sincroniza el viajeActivo a Firestore sin bloquear la UI */
-async function syncViaje() {
+window.syncViaje = async function syncViaje() {
   if (!state.viajeActivo?.firestoreId) return;
   try {
     await updateDoc(doc(db, COL_VIAJES, state.viajeActivo.firestoreId), {
