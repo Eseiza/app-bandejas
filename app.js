@@ -307,23 +307,60 @@ function mostrarPantallaViaje() {
   poblarDesplegable();
 }
 
+let clienteSeleccionado = '';
+
 function poblarDesplegable() {
-  const sel      = document.getElementById('cliente-select');
-  const agregados = state.viajeActivo.clientes.map(c => c.nombre);
-  sel.innerHTML  = '<option value="">— Seleccioná un cliente —</option>';
-  CLIENTES_LISTA.filter(c => !agregados.includes(c)).forEach(c => {
-    const o = document.createElement('option'); o.value = o.textContent = c; sel.appendChild(o);
-  });
+  clienteSeleccionado = '';
+  const input = document.getElementById('cliente-search');
+  if (input) input.value = '';
+  renderDropdown('');
 }
 
+function renderDropdown(filtro) {
+  const agregados = state.viajeActivo.clientes.map(c => c.nombre);
+  const lista = document.getElementById('cliente-dropdown');
+  if (!lista) return;
+
+  const termino = filtro.toLowerCase().trim();
+  const disponibles = CLIENTES_LISTA.filter(c =>
+    !agregados.includes(c) &&
+    (!termino || c.toLowerCase().includes(termino))
+  );
+
+  if (!disponibles.length) {
+    lista.innerHTML = '<div class="dd-item dd-empty">Sin resultados</div>';
+    lista.style.display = 'block';
+    return;
+  }
+
+  lista.innerHTML = disponibles.map(c =>
+    `<div class="dd-item" onclick="seleccionarCliente('${c.replace(/'/g, "\'")}')">${c}</div>`
+  ).join('');
+  lista.style.display = termino ? 'block' : 'none';
+}
+
+window.seleccionarCliente = function(nombre) {
+  clienteSeleccionado = nombre;
+  const input = document.getElementById('cliente-search');
+  if (input) input.value = nombre;
+  const lista = document.getElementById('cliente-dropdown');
+  if (lista) lista.style.display = 'none';
+};
+
+document.addEventListener('click', (e) => {
+  const wrap = document.getElementById('cliente-search-wrap');
+  if (wrap && !wrap.contains(e.target)) {
+    const lista = document.getElementById('cliente-dropdown');
+    if (lista) lista.style.display = 'none';
+  }
+});
+
 document.getElementById('btn-agregar-cliente').addEventListener('click', () => {
-  const sel    = document.getElementById('cliente-select');
-  const nombre = sel.value;
-  if (!nombre) { showToast('Seleccioná un cliente', true); return; }
+  const nombre = clienteSeleccionado;
+  if (!nombre) { showToast('Seleccioná un cliente de la lista', true); return; }
   state.viajeActivo.clientes.push({ nombre, dejan: '', devuelven: '', done: false });
   renderClientesViaje();
   poblarDesplegable();
-  sel.value = '';
   syncViaje();
 });
 
