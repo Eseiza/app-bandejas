@@ -112,10 +112,14 @@
     </div>
     <div class="card add-cliente-card">
       <div class="card-title">Agregar cliente al viaje</div>
-      <div class="add-cliente-row">
-        <select id="cliente-select"><option value="">— Seleccioná un cliente —</option></select>
-        <button class="btn btn-sm btn-green" id="btn-agregar-cliente">AGREGAR</button>
-      </div>
+     <div class="add-cliente-row">
+  <div id="cliente-search-wrap" style="flex:1;position:relative;">
+    <input type="text" id="cliente-search" placeholder="Buscar cliente..." autocomplete="off"
+      oninput="renderDropdown(this.value)" onfocus="renderDropdown(this.value)">
+    <div id="cliente-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--surface2);border:1px solid var(--border);max-height:220px;overflow-y:auto;z-index:200;"></div>
+  </div>
+  <button class="btn btn-sm btn-green" id="btn-agregar-cliente">AGREGAR</button>
+</div>
     </div>
     <div class="card" style="padding:0;overflow:hidden">
       <div style="padding:14px 16px;border-bottom:1px solid var(--border)">
