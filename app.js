@@ -327,6 +327,16 @@ document.getElementById('btn-agregar-cliente').addEventListener('click', () => {
   syncViaje();
 });
 
+function leerInputsDOM() {
+  const list = document.getElementById('viaje-clientes-list');
+  if (!list) return;
+  list.querySelectorAll('.cl-row').forEach((row, i) => {
+    const inputs = row.querySelectorAll('.cl-input');
+    if (inputs[0]) state.viajeActivo.clientes[i].dejan     = inputs[0].value;
+    if (inputs[1]) state.viajeActivo.clientes[i].devuelven = inputs[1].value;
+  });
+}
+
 function renderClientesViaje() {
   const list = document.getElementById('viaje-clientes-list');
   const cls  = state.viajeActivo.clientes;
@@ -366,12 +376,24 @@ function renderClientesViaje() {
 }
 
 window.toggleDone = function(i) {
+  leerInputsDOM();
   state.viajeActivo.clientes[i].done = !state.viajeActivo.clientes[i].done;
-  renderClientesViaje();
+  const done = state.viajeActivo.clientes[i].done;
+  // Solo actualiza el badge y la clase de la fila, sin rerenderizar todo
+  const rows = document.querySelectorAll('#viaje-clientes-list .cl-row');
+  if (rows[i]) {
+    rows[i].classList.toggle('done', done);
+    const badge = rows[i].querySelector('.badge');
+    if (badge) {
+      badge.className = 'badge ' + (done ? 'ok' : 'pend');
+      badge.textContent = done ? '✓ OK' : 'PENDIENTE';
+    }
+  }
   syncViaje();
 };
 
 window.quitarCliente = function(i) {
+  leerInputsDOM();
   state.viajeActivo.clientes.splice(i, 1);
   renderClientesViaje();
   poblarDesplegable();
