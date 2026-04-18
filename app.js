@@ -311,15 +311,28 @@ let clienteSeleccionado = '';
 
 function poblarDesplegable() {
   clienteSeleccionado = '';
-  const input = document.getElementById('cliente-search');
-  if (input) input.value = '';
-  renderDropdown('');
+  const search = document.getElementById('dd-search');
+  if (search) search.value = '';
+  const lista = document.getElementById('cliente-dropdown');
+  if (lista) lista.style.display = 'none';
 }
 
-function renderDropdown(filtro) {
-  const agregados = state.viajeActivo.clientes.map(c => c.nombre);
+function abrirDropdown() {
   const lista = document.getElementById('cliente-dropdown');
   if (!lista) return;
+  renderDropdownItems('');
+  lista.style.display = 'block';
+  // Foco al input de búsqueda dentro del dropdown
+  setTimeout(() => {
+    const s = document.getElementById('dd-search');
+    if (s) s.focus();
+  }, 50);
+}
+
+function renderDropdownItems(filtro) {
+  const agregados = state.viajeActivo ? state.viajeActivo.clientes.map(c => c.nombre) : [];
+  const items = document.getElementById('dd-items');
+  if (!items) return;
 
   const termino = filtro.toLowerCase().trim();
   const disponibles = CLIENTES_LISTA.filter(c =>
@@ -328,24 +341,27 @@ function renderDropdown(filtro) {
   );
 
   if (!disponibles.length) {
-    lista.innerHTML = '<div class="dd-item dd-empty">Sin resultados</div>';
-    lista.style.display = 'block';
+    items.innerHTML = '<div class="dd-item dd-empty">Sin resultados</div>';
     return;
   }
 
-  lista.innerHTML = disponibles.map(c =>
-    `<div class="dd-item" onclick="seleccionarCliente('${c.replace(/'/g, "\'")}')">${c}</div>`
+  items.innerHTML = disponibles.map(c =>
+    `<div class="dd-item" onmousedown="seleccionarCliente('${c.replace(/'/g, "\'")}')">${c}</div>`
   ).join('');
-  lista.style.display = termino ? 'block' : 'none';
 }
 
 window.seleccionarCliente = function(nombre) {
   clienteSeleccionado = nombre;
-  const input = document.getElementById('cliente-search');
-  if (input) input.value = nombre;
+  // Mostrar nombre seleccionado en el trigger
+  const trigger = document.getElementById('dd-trigger');
+  if (trigger) trigger.textContent = nombre;
   const lista = document.getElementById('cliente-dropdown');
   if (lista) lista.style.display = 'none';
+  const search = document.getElementById('dd-search');
+  if (search) search.value = '';
 };
+
+window.renderDropdownItems = renderDropdownItems;
 
 document.addEventListener('click', (e) => {
   const wrap = document.getElementById('cliente-search-wrap');
@@ -359,6 +375,9 @@ document.getElementById('btn-agregar-cliente').addEventListener('click', () => {
   const nombre = clienteSeleccionado;
   if (!nombre) { showToast('Seleccioná un cliente de la lista', true); return; }
   state.viajeActivo.clientes.push({ nombre, dejan: '', devuelven: '', done: false });
+  clienteSeleccionado = '';
+  const trigger = document.getElementById('dd-trigger');
+  if (trigger) trigger.textContent = '— Seleccioná un cliente —';
   renderClientesViaje();
   poblarDesplegable();
   syncViaje();
