@@ -1,680 +1,635 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-import {
-  getFirestore, collection, doc,
-  addDoc, setDoc, updateDoc, getDoc, getDocs,
-  deleteDoc, onSnapshot, query, orderBy
-} from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
-
-/* ── FIREBASE ── */
-const firebaseConfig = {
-  apiKey:            "AIzaSyAe3fN9lRO7tCobWYTSQIdtEUG0LiRGoBQ",
-  authDomain:        "bandejas-romero.firebaseapp.com",
-  projectId:         "bandejas-romero",
-  storageBucket:     "bandejas-romero.firebasestorage.app",
-  messagingSenderId: "522272946874",
-  appId:             "1:522272946874:web:07a237233a58b2ffea6083"
-};
-
-const app = initializeApp(firebaseConfig);
-const db  = getFirestore(app);
-
-const COL_VIAJES = "viajes";
-const COL_DEUDAS = "deudas";
-
-/* ── USUARIOS ── */
-const USERS = {
-  "camionero1": { password: "chofer.2026", role: "chofer",       nombre: "CEL1"   },
-  "camionero2": { password: "chofer.2026", role: "chofer",       nombre: "CEL2"   },
-  "camionero3": { password: "chofer.2026", role: "chofer",       nombre: "CEL3"   },
-  "camionero4": { password: "chofer.2026", role: "chofer",       nombre: "CEL4"   },
-  "camionero5": { password: "chofer.2026", role: "chofer",       nombre: "CEL5"   },
-  "camionero6": { password: "chofer.2026", role: "chofer",       nombre: "CEL6"   },
-  "camionero7": { password: "chofer.2026", role: "chofer",       nombre: "CEL7"   },
-  "Admin":      { password: "Admin.2026",  role: "visualizador", nombre: "Romero" },
-};
-
-/* ── CAMIONES ── */
-const CAMIONES = [
-  "Mercedes Benz ATEGO 1418 · KSB 077",
-  "Mercedes Benz 710 · HSH 342",
-  "Mercedes Benz 710 · GWI 653",
-  "Mercedes Benz ATEGO 1418 · JUT 069",
-  "Mercedes Benz ATEGO 1721 · AD 884 UR",
-  "Mercedes Benz ATEGO · AE 203 YU",
-  "Mercedes Benz ATEGO 1721 · AH 762 MP",
-  "*MB ACCELOV1016 · AG 915 RC*",
-  "*MB ATEGO 1721*"
-];
-
-/* ── CHOFERES ── */
-const CHOFERES = [
-  "FABIO LUZZI",
-  "NAHUEL DOMINGUEZ",
-  "ARIEL SOSA",
-  "VILLAVERDE MAURO",
-  "FERNANDEZ MAURO"
-];
-
-/* ── CLIENTES ── */
-const CLIENTES_LISTA = [
-  "ABRAHAM FABIO ENRIQUE","CIELO DEL CAMPO SRL","DELUCA ALICIA NOEMI",
-  "DISTRIBUIDORA LUSITANO S.A.","DISTRIBUIDORA NACAMAR SRL (Saovi)",
-  "DISTRIBUIDORA NACAMAR SRL (La Voria)",
-  "BOSSIO LUIS Y PORTO SERGIO ANDRES S.H.(Moscori)",
-  "BOSSIO LUIS Y PORTO SERGIO ANDRES S.H.(Calchaqui)",
-  "BOSSIO LUIS Y PORTO SERGIO ANDRES S.H.(Av. La Plata)",
-  "BOSSIO LUIS Y PORTO SERGIO ANDRES S.H.(Monteverde)",
-  "DISTRIBUIDORA PONCE Y HERRERE SRL EN FORMACION",
-  "DISTRIBUIDORA SARMIENTO S.A.","DISTRIBUIDORA SOURIGUES SRL",
-  "DISTRIBUIDORA UDAONDO SOCIEDAD DE RESPONSABILIDAD LIMITADA",
-  "DURAN GABRIELA SILVANA","ALIMENTOS BEGONIA S.A.","ENREDADOS SRL",
-  "ESTIVE GASTON FERNANDO","GALLETODO EL POLACO SRL","GARCIA ALICIA FILOMENA",
-  "GARCIA BUHLMAN FEDERICO (Laferrere)","GARCIA BUHLMAN FEDERICO (Gonzalez Catan)",
-  "GARCIA MIGUEL ANGEL","GIMENEZ DOMINGO FEDERICO","GODOY VERONICA BEATRIZ",
-  "ALVAREZ ROBERTO","IRUSTA RAMON ROBERTO","IZQUIERDO JOSE LUIS","LA GEOVANI S.A.",
-  "LACTEOS FERNYBELL SRL",
-  "LACTEOS UDAONDO SOCIEDAD DE RESPONSABILIDAD LIMITADA (Burzaco)",
-  "LACTEOS UDAONDO SOCIEDAD DE RESPONSABILIDAD LIMITADA (Gonzalez Catan)",
-  "LUCERO MARCELO GUSTAVO Y MENDEZ MARIANO DAVID SOCIEDAD SIMPL",
-  "LUIS EDUARDO ROBERTO","MAJDALANI SRL","MARVIOMAN SOCIEDAD ANONIMA","AN DELL SRL",
-  "MAYORISTA SURGLAM SRL","MI CABAÑA EXPRESS SRL","MK SRL","MOLINA CESAR ORLANDO",
-  "MONTANERA GABRIELA MARIANA Y MONTANERA EMILIANO GABRIEL",
-  "MOS IGNACIO MARTIN","MUÑOZ NATALIA SOLEDAD","NUÑEZ ARIEL JESUS",
-  "NUÑEZ SAMANIEGO JOSE","PEÑALOZA ONTIVEROS IRENE","BAEZ VIÑALEZ JORGE RAMON",
-  "PETRIELLA SERGIO DARIO","QUIROZ WALTER MARCELO","RIVAROLA MARTIN EDUARDO",
-  "RODRIGUEZ LUIS MARIA","RODRIGUEZ MARCELO ALEJANDRO","ROMAN HNOS SRL",
-  "ROMERO NESTOR EDUARDO","ROSALES DARIO JAVIER","SANTIGLI MAXIMILIANO ARIEL",
-  "SAXOFON S.A.","BANZA IVAN MATIAS","TODO CONSUMO S.A.","TRAPAL SRL",
-  "VEDOVELLI ELIAN ENRICO","YAHUEN SA","FRAGANCIAS DEL CAMPO SRL",
-  "BURGIO PABLO ADRIAN","AUTOSERVICIO MAYORISTA LA NUEVA RUTA 4 SRL",
-  "GOROSITO JORGE ALBERTO","CARO DEVORA AYLEN","IGLESIAS DANIEL GUSTAVO",
-  "CABAÑA SANTA MARTA SRL","TUMILASCI MARCOS LEONARDO",
-  "GRUPO ALIMENTOS CONGELADOS THE ROXY SOCIEDAD DE RESPON...",
-  "MARSHALL GAINZA LEOPOLDO","LA ESQUINA DEL PIZERO S.A.","CAMBA NAHUEL CARLOS",
-  "AUTOSERVICIO MAYORISTA EL SUPERCLASICO DEL SUR SRL","QUIROZ WALTER KEVIN",
-  "GRUPO DISTRIBUIDORA LA COLORADA NB","STRAVE SRL","GALLEMAR SRL",
-  "CANELAS ERNESTO ARTURO","COLIN JUAN ROMAN","ALBERTTI SEBASTIAN DARIO",
-  "PIOTRA SRL","GRUPO MAYORISTA MIA SRL","LUIS AUGUSTO FERNANDO",
-  "ALITAP SOCIEDAD ANONIMA","MENDEZ AGUILAR ELISA",
-  "AKP651 S.A.(Temperley)","AKP651 S.A.(Berazategui)","AKP651 S.A.(Quilmes)",
-  "ADROVER MIGUEL ANGEL","ATHABASCA GREY S.A. (1)","ATHABASCA GREY S.A. (2)",
-  "CARO JOSE PATRICIO","COOPERATIVA DE TRABAJO ALIMENTOS ROCA ALIMENTADA",
-  "DISTRIBUCION  NICO R&J","DISTRIBUIDORA MUÑOZ SRL","GROSSO MATIAS",
-  "DISTRIBUIDORA ROJO SRL (1)","DISTRIBUIDORA ROJO SRL (2)","BANZA GABRIEL ALEJANDRO",
-];
-
-/* ── STATE ── */
-const state = {
-  role: null,
-  currentUser: '',
-  viajes: [],           // cargados desde Firestore
-  deudas: {},           // { nombreCliente: ajuste_numerico }
-  viajeActivo: null,
-  unsubViajes: null,
-  unsubDeudas: null,
-};
-
 /* ══════════════════════════════════════
-   UTILS
+   ROMERO PANIFICADOS — styles.css
 ══════════════════════════════════════ */
-function showToast(msg, isErr = false) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.style.background = isErr ? 'var(--accent2)' : 'var(--green)';
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2800);
+
+:root {
+  --bg:        #1a1208;
+  --surface:   #241a0a;
+  --surface2:  #2e2010;
+  --border:    #3d2e14;
+  --accent:    #c8860a;
+  --accent2:   #e8452c;
+  --green:     #5a9e4a;
+  --text:      #f5ede0;
+  --muted:     #8a7055;
+  --font-head: 'Bebas Neue', sans-serif;
+  --font-mono: 'DM Mono', monospace;
+  --font-body: 'DM Sans', sans-serif;
 }
 
-function formatFecha(isoDate) {
-  return new Date(isoDate).toLocaleDateString('es-AR', {
-    day: '2-digit', month: '2-digit', year: 'numeric',
-    hour: '2-digit', minute: '2-digit'
-  });
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  min-height: 100vh;
+  -webkit-tap-highlight-color: transparent;
 }
 
-/* ══════════════════════════════════════
-   FIRESTORE — SUSCRIPCIONES
-══════════════════════════════════════ */
-function suscribirViajes() {
-  const q = query(collection(db, COL_VIAJES), orderBy('timestamp', 'asc'));
-  state.unsubViajes = onSnapshot(q, (snap) => {
-    state.viajes = snap.docs.map(d => ({ firestoreId: d.id, ...d.data() }));
-    refrescarVistas();
-  }, (err) => showToast('Error Firestore: ' + err.message, true));
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); }
+
+/* ══ LOGIN ══ */
+#screen-login {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 16px;
+  background:
+    radial-gradient(ellipse at top, rgba(200,134,10,.12) 0%, transparent 60%),
+    repeating-linear-gradient(45deg, transparent, transparent 40px, rgba(200,134,10,.02) 40px, rgba(200,134,10,.02) 41px),
+    var(--bg);
 }
 
-function suscribirDeudas() {
-  state.unsubDeudas = onSnapshot(collection(db, COL_DEUDAS), (snap) => {
-    state.deudas = {};
-    snap.docs.forEach(d => { state.deudas[d.id] = d.data().ajuste || 0; });
-    const tabDeudas = document.getElementById('tab-deudas');
-    if (tabDeudas && tabDeudas.style.display !== 'none') renderDeudas();
-  });
+.login-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-top: 4px solid var(--accent);
+  padding: 36px 28px;
+  width: 100%;
+  max-width: 420px;
 }
 
-function refrescarVistas() {
-  if (state.role === 'chofer') {
-    actualizarResumenHoy();
-  } else {
-    const tabReg   = document.getElementById('tab-registros');
-    const tabDeuda = document.getElementById('tab-deudas');
-    poblarFiltros();
-    if (tabReg   && tabReg.style.display   !== 'none') aplicarFiltros();
-    if (tabDeuda && tabDeuda.style.display !== 'none') renderDeudas();
-  }
+.login-brand { display: flex; align-items: center; gap: 12px; margin-bottom: 4px; }
+
+.login-title {
+  font-family: var(--font-head);
+  font-size: 38px;
+  letter-spacing: 3px;
+  color: var(--accent);
+  line-height: 1;
 }
 
-function detachAll() {
-  if (state.unsubViajes) state.unsubViajes();
-  if (state.unsubDeudas) state.unsubDeudas();
+.login-sub {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 2px;
+  margin-bottom: 8px;
 }
 
-/* ══════════════════════════════════════
-   LOGIN
-══════════════════════════════════════ */
-document.querySelectorAll('.role-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('selected'));
-    btn.classList.add('selected');
-    state.role = btn.dataset.role;
-  });
-});
-
-['login-user', 'login-pass'].forEach(id => {
-  document.getElementById(id).addEventListener('keydown', e => {
-    if (e.key === 'Enter') doLogin();
-  });
-});
-
-document.getElementById('login-btn').addEventListener('click', doLogin);
-
-function doLogin() {
-  const username = document.getElementById('login-user').value.trim();
-  const password = document.getElementById('login-pass').value.trim();
-  if (!username || !password) { showToast('Ingresá usuario y contraseña', true); return; }
-  if (!state.role)            { showToast('Seleccioná un rol', true); return; }
-
-  const user = USERS[username];
-  if (!user || user.password !== password) { showToast('Usuario o contraseña incorrectos', true); return; }
-  if (user.role !== state.role) { showToast(`Este usuario es "${user.role}", seleccioná el rol correcto`, true); return; }
-
-  state.currentUser = user.nombre;
-  document.getElementById('screen-login').style.display = 'none';
-
-  if (state.role === 'chofer') {
-    document.getElementById('screen-chofer').style.cssText = 'display:flex;flex-direction:column;min-height:100vh;width:100%';
-    document.getElementById('chofer-nombre').textContent = user.nombre;
-    suscribirViajes();
-    mostrarPantallaInicio();
-  } else {
-    document.getElementById('screen-vis').style.display = 'flex';
-    document.getElementById('vis-nombre').textContent = user.nombre;
-    suscribirViajes();
-    suscribirDeudas();
-  }
+.login-tagline {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 28px;
+  font-style: italic;
 }
 
-/* ══════════════════════════════════════
-   CHOFER — PANTALLAS
-══════════════════════════════════════ */
-function mostrarPantalla(id) {
-  document.querySelectorAll('.chofer-screen').forEach(s => s.style.display = 'none');
-  document.getElementById(id).style.display = 'block';
+.role-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 24px;
 }
 
-function mostrarPantallaInicio() {
-  mostrarPantalla('pantalla-inicio');
-  actualizarResumenHoy();
+.role-btn {
+  background: var(--surface2);
+  border: 2px solid var(--border);
+  color: var(--muted);
+  padding: 18px 12px;
+  cursor: pointer;
+  text-align: center;
+  transition: all .2s;
+  user-select: none;
 }
 
-function actualizarResumenHoy() {
-  const hoy = new Date().toDateString();
-  const viajesHoy = state.viajes.filter(v => new Date(v.fecha).toDateString() === hoy);
-  document.getElementById('resumen-viajes').textContent  = viajesHoy.length;
-  const totalSalen   = viajesHoy.reduce((s, v) => s + (v.bandejas_salen || 0), 0);
-  const totalVuelven = viajesHoy.reduce((s, v) =>
-    s + (v.clientes || []).reduce((a, c) => a + (parseInt(c.devuelven) || 0), 0), 0);
-  document.getElementById('resumen-salen').textContent   = totalSalen;
-  document.getElementById('resumen-vuelven').textContent = totalVuelven;
+.role-btn.selected {
+  border-color: var(--accent);
+  background: rgba(200,134,10,.1);
+  color: var(--accent);
 }
 
-/* ── NUEVO VIAJE ── */
-document.getElementById('btn-nuevo-viaje').addEventListener('click', () => {
-  mostrarPantalla('pantalla-nuevo-viaje');
-  document.getElementById('nv-fecha').textContent =
-    new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' });
+.r-icon { font-size: 26px; display: block; margin-bottom: 6px; }
+.r-name { font-size: 14px; font-weight: 700; display: block; }
+.r-desc { font-size: 10px; color: var(--muted); margin-top: 3px; font-family: var(--font-mono); }
 
-  const selCam = document.getElementById('nv-camion');
-  selCam.innerHTML = '<option value="">— Seleccioná un camión —</option>';
-  CAMIONES.forEach(c => { const o = document.createElement('option'); o.value = o.textContent = c; selCam.appendChild(o); });
+/* ══ FORM ══ */
+.field { margin-bottom: 16px; }
+.mb-0 { margin-bottom: 0 !important; }
 
-  const selCho = document.getElementById('nv-chofer');
-  selCho.innerHTML = '<option value="">— Seleccioná un chofer —</option>';
-  CHOFERES.forEach(c => { const o = document.createElement('option'); o.value = o.textContent = c; selCho.appendChild(o); });
-
-  document.getElementById('nv-bandejas').value = '';
-});
-
-document.getElementById('btn-cancelar-viaje').addEventListener('click', mostrarPantallaInicio);
-
-document.getElementById('btn-iniciar-viaje').addEventListener('click', async () => {
-  const camion   = document.getElementById('nv-camion').value.trim();
-  const chofer   = document.getElementById('nv-chofer').value.trim();
-  const bandejas = parseInt(document.getElementById('nv-bandejas').value) || 0;
-  if (!camion)   { showToast('Seleccioná un camión', true); return; }
-  if (!chofer)   { showToast('Seleccioná un chofer', true); return; }
-  if (!bandejas) { showToast('Ingresá las bandejas que salen', true); return; }
-
-  const datos = {
-    timestamp:      Date.now(),
-    fecha:          new Date().toISOString(),
-    camion,
-    chofer,
-    bandejas_salen: bandejas,
-    clientes:       [],
-    cerrado:        false,
-  };
-
-  try {
-    const ref = await addDoc(collection(db, COL_VIAJES), datos);
-    state.viajeActivo = { ...datos, firestoreId: ref.id };
-    mostrarPantallaViaje();
-  } catch (e) {
-    showToast('Error al crear viaje: ' + e.message, true);
-  }
-});
-
-/* Sincroniza el viajeActivo a Firestore sin bloquear la UI */
-window.syncViaje = async function syncViaje() {
-  if (!state.viajeActivo?.firestoreId) return;
-  try {
-    await updateDoc(doc(db, COL_VIAJES, state.viajeActivo.firestoreId), {
-      clientes: state.viajeActivo.clientes,
-    });
-  } catch (e) {
-    showToast('Error al sincronizar: ' + e.message, true);
-  }
+label {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+  font-family: var(--font-mono);
 }
 
-/* ── VIAJE EN CURSO ── */
-function mostrarPantallaViaje() {
-  mostrarPantalla('pantalla-viaje');
-  const v = state.viajeActivo;
-  document.getElementById('viaje-camion').textContent   = v.camion;
-  document.getElementById('viaje-chofer').textContent   = v.chofer;
-  document.getElementById('viaje-bandejas').textContent = v.bandejas_salen;
-  renderClientesViaje();
-  poblarDesplegable();
+input, select {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 14px;
+  font-size: 16px;
+  font-family: var(--font-body);
+  outline: none;
+  transition: border-color .2s;
 }
 
-let clienteSeleccionado = '';
+input:focus, select:focus { border-color: var(--accent); }
 
-function poblarDesplegable() {
-  clienteSeleccionado = '';
-  const search = document.getElementById('dd-search');
-  if (search) search.value = '';
-  const lista = document.getElementById('cliente-dropdown');
-  if (lista) lista.style.display = 'none';
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%238a7055' d='M6 8L0 0h12z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 36px;
 }
 
-function abrirDropdown() {
-  const lista = document.getElementById('cliente-dropdown');
-  if (!lista) return;
-  renderDropdownItems('');
-  lista.style.display = 'block';
-  // Foco al input de búsqueda dentro del dropdown
-  setTimeout(() => {
-    const s = document.getElementById('dd-search');
-    if (s) s.focus();
-  }, 50);
+select option { background: #241a0a; }
+
+/* ══ BUTTONS ══ */
+.btn {
+  width: 100%;
+  padding: 16px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-head);
+  font-size: 22px;
+  letter-spacing: 2px;
+  transition: background .15s;
+  touch-action: manipulation;
 }
 
-function renderDropdownItems(filtro) {
-  const agregados = state.viajeActivo ? state.viajeActivo.clientes.map(c => c.nombre) : [];
-  const items = document.getElementById('dd-items');
-  if (!items) return;
+.btn:active { background: #e09a1a; }
+.btn:disabled { opacity: .4; }
 
-  const termino = filtro.toLowerCase().trim();
-  const disponibles = CLIENTES_LISTA.filter(c =>
-    !agregados.includes(c) &&
-    (!termino || c.toLowerCase().includes(termino))
-  );
-
-  if (!disponibles.length) {
-    items.innerHTML = '<div class="dd-item dd-empty">Sin resultados</div>';
-    return;
-  }
-
-  items.innerHTML = disponibles.map(c =>
-    `<div class="dd-item" onmousedown="seleccionarCliente('${c.replace(/'/g, "\'")}')">${c}</div>`
-  ).join('');
+.btn-sm {
+  font-size: 13px;
+  padding: 10px 18px;
+  width: auto;
+  font-family: var(--font-body);
+  font-weight: 600;
+  letter-spacing: 1px;
 }
 
-window.seleccionarCliente = function(nombre) {
-  clienteSeleccionado = nombre;
-  // Mostrar nombre seleccionado en el trigger
-  const trigger = document.getElementById('dd-trigger');
-  if (trigger) trigger.textContent = nombre;
-  const lista = document.getElementById('cliente-dropdown');
-  if (lista) lista.style.display = 'none';
-  const search = document.getElementById('dd-search');
-  if (search) search.value = '';
-};
+.btn-big { margin-top: 8px; font-size: 22px; padding: 20px; width: 100%; }
+.btn-green { background: var(--green); color: #fff; }
+.btn-green:active { background: #6ab85a; }
+.btn-danger { background: var(--accent2); color: #fff; margin-top: 16px; }
+.btn-danger:active { background: #ff6b50; }
 
-window.renderDropdownItems = renderDropdownItems;
-
-document.addEventListener('click', (e) => {
-  const wrap = document.getElementById('cliente-search-wrap');
-  if (wrap && !wrap.contains(e.target)) {
-    const lista = document.getElementById('cliente-dropdown');
-    if (lista) lista.style.display = 'none';
-  }
-});
-
-document.getElementById('btn-agregar-cliente').addEventListener('click', () => {
-  const nombre = clienteSeleccionado;
-  if (!nombre) { showToast('Seleccioná un cliente de la lista', true); return; }
-  state.viajeActivo.clientes.push({ nombre, dejan: '', devuelven: '', done: false });
-  clienteSeleccionado = '';
-  const trigger = document.getElementById('dd-trigger');
-  if (trigger) trigger.textContent = '— Seleccioná un cliente —';
-  renderClientesViaje();
-  poblarDesplegable();
-  syncViaje();
-});
-
-function leerInputsDOM() {
-  const list = document.getElementById('viaje-clientes-list');
-  if (!list) return;
-  list.querySelectorAll('.cl-row').forEach((row, i) => {
-    const inputs = row.querySelectorAll('.cl-input');
-    if (inputs[0]) state.viajeActivo.clientes[i].dejan     = inputs[0].value;
-    if (inputs[1]) state.viajeActivo.clientes[i].devuelven = inputs[1].value;
-  });
+.btn-back {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  font-size: 15px;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-weight: 500;
+  padding: 8px 0;
+  touch-action: manipulation;
 }
 
-function renderClientesViaje() {
-  const list = document.getElementById('viaje-clientes-list');
-  const cls  = state.viajeActivo.clientes;
-  if (!cls.length) {
-    list.innerHTML = '<div class="empty-msg">Agregá clientes con el desplegable de arriba</div>';
-    return;
-  }
-  list.innerHTML = '';
-  cls.forEach((cl, i) => {
-    const row = document.createElement('div');
-    row.className = 'cl-row' + (cl.done ? ' done' : '');
-    row.innerHTML = `
-      <div class="cl-row-top">
-        <div class="cl-num">${String(i+1).padStart(2,'0')}</div>
-        <div class="cl-name">${cl.nombre}</div>
-        <button class="btn-quitar" onclick="quitarCliente(${i})">✕</button>
-      </div>
-      <div class="cl-row-bottom">
-        <div class="cl-inputs">
-          <div class="cl-input-group">
-            <span class="cl-input-label">Dejan</span>
-            <input class="cl-input" type="number" inputmode="numeric" min="0" placeholder="0" value="${cl.dejan}"
-              oninput="state.viajeActivo.clientes[${i}].dejan=this.value;syncViaje()">
-          </div>
-          <div class="cl-input-group">
-            <span class="cl-input-label">Devuelven</span>
-            <input class="cl-input" type="number" inputmode="numeric" min="0" placeholder="0" value="${cl.devuelven}"
-              oninput="state.viajeActivo.clientes[${i}].devuelven=this.value;syncViaje()">
-          </div>
-        </div>
-        <div class="badge ${cl.done ? 'ok' : 'pend'}" onclick="toggleDone(${i})">
-          ${cl.done ? '✓ OK' : 'PENDIENTE'}
-        </div>
-      </div>`;
-    list.appendChild(row);
-  });
+.btn-quitar {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+  font-size: 13px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: manipulation;
 }
 
-window.toggleDone = function(i) {
-  leerInputsDOM();
-  state.viajeActivo.clientes[i].done = !state.viajeActivo.clientes[i].done;
-  const done = state.viajeActivo.clientes[i].done;
-  // Solo actualiza el badge y la clase de la fila, sin rerenderizar todo
-  const rows = document.querySelectorAll('#viaje-clientes-list .cl-row');
-  if (rows[i]) {
-    rows[i].classList.toggle('done', done);
-    const badge = rows[i].querySelector('.badge');
-    if (badge) {
-      badge.className = 'badge ' + (done ? 'ok' : 'pend');
-      badge.textContent = done ? '✓ OK' : 'PENDIENTE';
-    }
-  }
-  syncViaje();
-};
+.btn-quitar:active { border-color: var(--accent2); color: var(--accent2); }
 
-window.quitarCliente = function(i) {
-  leerInputsDOM();
-  state.viajeActivo.clientes.splice(i, 1);
-  renderClientesViaje();
-  poblarDesplegable();
-  syncViaje();
-};
-
-document.getElementById('btn-cerrar-viaje').addEventListener('click', async () => {
-  const cls  = state.viajeActivo.clientes;
-  const pend = cls.filter(c => !c.done).length;
-  if (!cls.length) { showToast('Agregá al menos un cliente', true); return; }
-  if (pend > 0 && !confirm(`Hay ${pend} cliente(s) pendientes. ¿Cerrar igual?`)) return;
-
-  try {
-    await updateDoc(doc(db, COL_VIAJES, state.viajeActivo.firestoreId), {
-      clientes: state.viajeActivo.clientes,
-      cerrado:  true,
-    });
-    state.viajeActivo = null;
-    showToast('✓ Viaje cerrado y guardado');
-    mostrarPantallaInicio();
-  } catch (e) {
-    showToast('Error al cerrar viaje: ' + e.message, true);
-  }
-});
-
-document.getElementById('btn-volver-inicio').addEventListener('click', async () => {
-  if (state.viajeActivo) {
-    if (state.viajeActivo.clientes.length > 0) {
-      if (!confirm('¿Salir? El viaje quedará guardado como borrador en Firestore.')) return;
-    }
-    /* Borramos el viaje vacío o incompleto si el chofer sale sin cerrarlo */
-    if (state.viajeActivo.clientes.length === 0) {
-      try { await deleteDoc(doc(db, COL_VIAJES, state.viajeActivo.firestoreId)); } catch {}
-    }
-  }
-  state.viajeActivo = null;
-  mostrarPantallaInicio();
-});
-
-/* ══════════════════════════════════════
-   VISUALIZADOR — TABS
-══════════════════════════════════════ */
-document.querySelectorAll('.vis-tab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    document.querySelectorAll('.vis-tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.vis-tab-content').forEach(c => c.style.display = 'none');
-    tab.classList.add('active');
-    const content = document.getElementById('tab-' + tab.dataset.tab);
-    content.style.display = 'block';
-    if (tab.dataset.tab === 'deudas')    renderDeudas();
-    if (tab.dataset.tab === 'registros') aplicarFiltros();
-  });
-});
-
-/* ══════════════════════════════════════
-   VISUALIZADOR — REGISTROS CON FILTROS
-══════════════════════════════════════ */
-document.getElementById('btn-refresh-vis').addEventListener('click', () => {
-  showToast('✓ Actualizando en tiempo real…');
-});
-
-document.getElementById('btn-filtrar').addEventListener('click', aplicarFiltros);
-
-document.getElementById('btn-limpiar-filtros').addEventListener('click', () => {
-  document.getElementById('filtro-desde').value  = '';
-  document.getElementById('filtro-hasta').value  = '';
-  document.getElementById('filtro-cliente').value = '';
-  document.getElementById('filtro-chofer').value  = '';
-  aplicarFiltros();
-});
-
-function poblarFiltros() {
-  const clientes = [...new Set(state.viajes.flatMap(v => (v.clientes||[]).map(c => c.nombre)))].sort();
-  const selCl = document.getElementById('filtro-cliente');
-  const valCl = selCl.value;
-  selCl.innerHTML = '<option value="">Todos</option>';
-  clientes.forEach(c => { const o = document.createElement('option'); o.value = o.textContent = c; selCl.appendChild(o); });
-  selCl.value = valCl;
-
-  const choferes = [...new Set(state.viajes.map(v => v.chofer))].sort();
-  const selCh = document.getElementById('filtro-chofer');
-  const valCh = selCh.value;
-  selCh.innerHTML = '<option value="">Todos</option>';
-  choferes.forEach(c => { const o = document.createElement('option'); o.value = o.textContent = c; selCh.appendChild(o); });
-  selCh.value = valCh;
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-family: var(--font-body);
+  font-weight: 600;
+  letter-spacing: 1px;
+  cursor: pointer;
+  touch-action: manipulation;
 }
 
-function aplicarFiltros() {
-  const desde   = document.getElementById('filtro-desde').value;
-  const hasta   = document.getElementById('filtro-hasta').value;
-  const cliente = document.getElementById('filtro-cliente').value;
-  const chofer  = document.getElementById('filtro-chofer').value;
+.btn-outline:active { border-color: var(--text); color: var(--text); }
 
-  let filas = [];
-  state.viajes.forEach(v => {
-    (v.clientes||[]).forEach(cl => {
-      filas.push({ ...cl, fecha: v.fecha, camion: v.camion, chofer: v.chofer, bandejas_salen: v.bandejas_salen });
-    });
-  });
-
-  if (desde)   filas = filas.filter(f => f.fecha.slice(0,10) >= desde);
-  if (hasta)   filas = filas.filter(f => f.fecha.slice(0,10) <= hasta);
-  if (cliente) filas = filas.filter(f => f.nombre === cliente);
-  if (chofer)  filas = filas.filter(f => f.chofer === chofer);
-
-  renderTablaRegistros(filas);
-  updateVisKpis(desde, hasta);
+.btn-editar {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  padding: 6px 12px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  touch-action: manipulation;
 }
 
-function renderTablaRegistros(filas) {
-  const tbody = document.getElementById('vis-tbody');
-  if (!filas.length) {
-    tbody.innerHTML = '<tr><td colspan="7" class="cell-center text-muted">Sin registros para los filtros aplicados</td></tr>';
-    return;
-  }
-  tbody.innerHTML = filas.map(f => {
-    const dejan     = parseInt(f.dejan)     || 0;
-    const devuelven = parseInt(f.devuelven) || 0;
-    const dif       = devuelven - dejan;
-    return `<tr>
-      <td style="white-space:nowrap">${formatFecha(f.fecha)}</td>
-      <td class="text-mono text-accent">${f.camion}</td>
-      <td>${f.chofer}</td>
-      <td>${f.nombre}</td>
-      <td>${dejan}</td>
-      <td>${devuelven}</td>
-      <td class="${dif < 0 ? 'text-red' : dif > 0 ? 'text-green' : ''}">${dif > 0 ? '+' : ''}${dif}</td>
-    </tr>`;
-  }).join('');
+.btn-editar:active { border-color: var(--accent); color: var(--accent); }
+
+/* ══ HEADER ══ */
+header {
+  background: var(--surface);
+  border-bottom: 3px solid var(--accent);
+  padding: 0 16px;
+  height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
-function updateVisKpis(desde = '', hasta = '') {
-  let viajes = state.viajes;
-  if (desde) viajes = viajes.filter(v => v.fecha.slice(0,10) >= desde);
-  if (hasta) viajes = viajes.filter(v => v.fecha.slice(0,10) <= hasta);
-  document.getElementById('vis-kpi-viajes').textContent  = viajes.length;
-  document.getElementById('vis-kpi-salen').textContent   = viajes.reduce((s, v) => s + (v.bandejas_salen||0), 0);
-  document.getElementById('vis-kpi-vuelven').textContent = viajes.reduce((s, v) =>
-    s + (v.clientes||[]).reduce((a, c) => a + (parseInt(c.devuelven)||0), 0), 0);
+.logo { display: flex; align-items: center; gap: 8px; }
+.logo-icon { font-size: 22px; }
+
+.logo-text {
+  font-family: var(--font-head);
+  font-size: 20px;
+  letter-spacing: 2px;
+  color: var(--accent);
+  line-height: 1;
 }
 
-/* ══════════════════════════════════════
-   VISUALIZADOR — DEUDAS
-══════════════════════════════════════ */
-document.getElementById('btn-refresh-deudas').addEventListener('click', () => {
-  showToast('✓ Actualizando en tiempo real…');
-});
+.logo-text span { color: var(--text); }
 
-function calcularDeudaCliente(nombre) {
-  let total = 0;
-  state.viajes.forEach(v => {
-    (v.clientes||[]).filter(c => c.nombre === nombre).forEach(c => {
-      total += (parseInt(c.dejan)||0) - (parseInt(c.devuelven)||0);
-    });
-  });
-  return total;
+.logo-sub {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  color: var(--muted);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  display: block;
+  line-height: 1;
+  margin-top: 1px;
 }
 
-function renderDeudas() {
-  const list = document.getElementById('deudas-list');
-  const todosClientes = [...new Set([...CLIENTES_LISTA,
-    ...state.viajes.flatMap(v => (v.clientes||[]).map(c => c.nombre))
-  ])].sort();
-
-  if (!todosClientes.length) {
-    list.innerHTML = '<div class="empty-msg">Sin clientes registrados aún</div>';
-    return;
-  }
-
-  list.innerHTML = '';
-  todosClientes.forEach(nombre => {
-    const deudaCalculada = calcularDeudaCliente(nombre);
-    const ajuste         = state.deudas[nombre] || 0;
-    const deudaFinal     = deudaCalculada + ajuste;
-    const colorClass     = deudaFinal > 10 ? 'danger' : deudaFinal > 0 ? 'warn' : 'ok';
-
-    const row = document.createElement('div');
-    row.className = 'deuda-row';
-    row.innerHTML = `
-      <div class="deuda-nombre">${nombre}</div>
-      <div class="deuda-num ${colorClass}">${deudaFinal}</div>
-      <button class="btn-editar" onclick="abrirModalDeuda('${nombre.replace(/'/g,"\\'")}', ${deudaFinal})">EDITAR</button>`;
-    list.appendChild(row);
-  });
+.hbadge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
 }
 
-/* ══════════════════════════════════════
-   MODAL EDITAR DEUDA
-══════════════════════════════════════ */
-let modalClienteActivo = null;
+.role-tag {
+  padding: 3px 8px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
 
-window.abrirModalDeuda = function(nombre, deudaActual) {
-  modalClienteActivo = nombre;
-  document.getElementById('modal-cliente-nombre').textContent = nombre;
-  document.getElementById('modal-deuda-input').value = deudaActual;
-  document.getElementById('modal-overlay').style.display = 'flex';
-  document.getElementById('modal-deuda-input').focus();
-};
+.role-tag.chofer { background: var(--accent); color: #fff; }
+.role-tag.vis { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
 
-document.getElementById('modal-cancelar').addEventListener('click', () => {
-  document.getElementById('modal-overlay').style.display = 'none';
-  modalClienteActivo = null;
-});
+/* ══ SCREENS ══ */
+#screen-chofer {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  width: 100%;
+}
 
-document.getElementById('modal-overlay').addEventListener('click', (e) => {
-  if (e.target === document.getElementById('modal-overlay')) {
-    document.getElementById('modal-overlay').style.display = 'none';
-    modalClienteActivo = null;
-  }
-});
+.chofer-screen { width: 100%; flex: 1; }
 
-document.getElementById('modal-guardar').addEventListener('click', async () => {
-  if (!modalClienteActivo) return;
-  const nuevaDeuda     = parseInt(document.getElementById('modal-deuda-input').value) || 0;
-  const deudaCalculada = calcularDeudaCliente(modalClienteActivo);
-  const ajuste         = nuevaDeuda - deudaCalculada;
+/* ══ APP CONTENT ══ */
+.app-content {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px 16px 100px;
+}
 
-  try {
-    // Usamos el nombre del cliente como ID del documento en la colección deudas
-    const idDoc = modalClienteActivo.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 100);
-    await setDoc(doc(db, COL_DEUDAS, idDoc), { cliente: modalClienteActivo, ajuste });
-    document.getElementById('modal-overlay').style.display = 'none';
-    modalClienteActivo = null;
-    showToast('✓ Deuda actualizada');
-  } catch (e) {
-    showToast('Error al guardar deuda: ' + e.message, true);
-  }
-});
+.section-title {
+  font-family: var(--font-head);
+  font-size: 28px;
+  letter-spacing: 2px;
+  color: var(--text);
+  margin-bottom: 16px;
+  line-height: 1.1;
+}
+
+.back-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.viaje-info { font-size: 13px; line-height: 1.4; }
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+/* ══ KPI ══ */
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+.kpi {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 14px 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+.kpi::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--accent);
+}
+
+.kpi.green::before { background: var(--green); }
+.kpi.red::before   { background: var(--accent2); }
+.kpi-val { font-family: var(--font-head); font-size: 36px; line-height: 1; }
+.kpi-label { font-family: var(--font-mono); font-size: 9px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-top: 2px; }
+
+/* ══ CARD ══ */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 18px 16px;
+  margin-bottom: 12px;
+}
+
+.card-title {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 14px;
+}
+
+/* ══ AGREGAR CLIENTE ══ */
+.add-cliente-card { margin-bottom: 12px; }
+
+.add-cliente-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+/* ══ DROPDOWN BUSCADOR ══ */
+.dd-trigger {
+  width: 100%;
+  padding: 14px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 14px;
+  cursor: pointer;
+  font-family: var(--font-body);
+  line-height: 1.4;
+}
+
+.dd-trigger:hover { border-color: var(--accent); }
+
+#cliente-dropdown {
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+}
+
+#dd-search {
+  padding: 10px 12px;
+  font-size: 14px;
+  background: var(--surface);
+  border: 1px solid var(--accent);
+  color: var(--text);
+  width: 100%;
+}
+
+.dd-item {
+  padding: 12px 14px;
+  font-size: 14px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  line-height: 1.3;
+}
+
+.dd-item:last-child { border-bottom: none; }
+
+.dd-item:hover,
+.dd-item:active { background: var(--surface); color: var(--accent); }
+
+.dd-empty {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  cursor: default;
+  padding: 16px 14px;
+}
+
+/* ══ CLIENTES LIST ══ */
+.cl-row {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.cl-row.done { border-left: 3px solid var(--green); }
+.cl-row-top { display: flex; align-items: center; gap: 10px; }
+.cl-num { font-family: var(--font-head); font-size: 20px; color: var(--muted); width: 28px; flex-shrink: 0; }
+.cl-name { font-size: 15px; font-weight: 600; flex: 1; min-width: 0; }
+.cl-row-bottom { display: flex; align-items: center; gap: 8px; padding-left: 38px; }
+.cl-inputs { display: flex; gap: 8px; flex: 1; }
+.cl-input-group { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+.cl-input-label { font-family: var(--font-mono); font-size: 9px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+
+.cl-input {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 10px 8px;
+  font-size: 18px;
+  font-family: var(--font-mono);
+  width: 100%;
+  outline: none;
+  text-align: center;
+}
+
+.cl-input:focus { border-color: var(--accent); }
+
+.empty-msg {
+  padding: 36px 16px;
+  text-align: center;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 1px;
+  line-height: 1.8;
+}
+
+/* ══ BADGE ══ */
+.badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1px;
+  padding: 8px 12px;
+  cursor: pointer;
+  border: 1px solid;
+  user-select: none;
+  white-space: nowrap;
+  touch-action: manipulation;
+  display: inline-block;
+}
+
+.badge.ok   { background: rgba(90,158,74,.15);  color: var(--green);  border-color: var(--green); }
+.badge.pend { background: rgba(200,134,10,.1);  color: var(--accent); border-color: rgba(200,134,10,.4); }
+
+/* ══ VIS TABS ══ */
+.vis-tabs {
+  display: flex;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 54px;
+  z-index: 99;
+}
+
+.vis-tab {
+  flex: 1;
+  text-align: center;
+  padding: 14px 8px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 1px;
+  color: var(--muted);
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: all .2s;
+  touch-action: manipulation;
+}
+
+.vis-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.vis-tab-content { display: none; }
+.vis-tab-content.active { display: block; }
+
+/* ══ FILTROS ══ */
+.filtros-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* ══ TABLE ══ */
+.tbl { width: 100%; border-collapse: collapse; }
+
+.tbl th {
+  text-align: left;
+  padding: 9px 12px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.tbl td {
+  padding: 10px 12px;
+  font-size: 13px;
+  border-bottom: 1px solid var(--border);
+}
+
+.tbl tr:last-child td { border-bottom: none; }
+
+/* ══ DEUDAS ══ */
+.deuda-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+}
+
+.deuda-row:last-child { border-bottom: none; }
+.deuda-nombre { font-size: 14px; font-weight: 500; flex: 1; }
+.deuda-num { font-family: var(--font-head); font-size: 28px; line-height: 1; min-width: 48px; text-align: right; }
+.deuda-num.danger { color: var(--accent2); }
+.deuda-num.ok     { color: var(--green); }
+.deuda-num.warn   { color: var(--accent); }
+
+/* ══ MODAL ══ */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.8);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--accent);
+  padding: 28px 24px;
+  width: 100%;
+  max-width: 360px;
+}
+
+.modal-title { font-family: var(--font-head); font-size: 26px; letter-spacing: 3px; color: var(--accent); margin-bottom: 4px; }
+.modal-cliente { font-size: 16px; font-weight: 600; margin-bottom: 20px; color: var(--text); }
+
+/* ══ TOAST ══ */
+.toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: var(--green);
+  color: #fff;
+  padding: 14px 24px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  letter-spacing: 1px;
+  opacity: 0;
+  transition: all .3s;
+  z-index: 999;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+/* ══ UTILS ══ */
+.text-accent { color: var(--accent); }
+.text-green  { color: var(--green); }
+.text-red    { color: var(--accent2); }
+.text-mono   { font-family: var(--font-mono); }
+.text-muted  { color: var(--muted); }
+.cell-center { text-align: center; padding: 28px !important; }
+
+@media (max-width: 480px) {
+  .login-title { font-size: 32px; }
+  .kpi-val     { font-size: 30px; }
+  .kpi         { padding: 12px 10px; }
+  .kpi-label   { font-size: 8px; }
+}
