@@ -112,11 +112,16 @@
     </div>
     <div class="card add-cliente-card">
       <div class="card-title">Agregar cliente al viaje</div>
-     <div class="add-cliente-row">
+    <div class="add-cliente-row">
   <div id="cliente-search-wrap" style="flex:1;position:relative;">
-    <input type="text" id="cliente-search" placeholder="Buscar cliente..." autocomplete="off"
-      oninput="renderDropdown(this.value)" onfocus="renderDropdown(this.value)">
-    <div id="cliente-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--surface2);border:1px solid var(--border);max-height:220px;overflow-y:auto;z-index:200;"></div>
+    <div id="dd-trigger" class="dd-trigger" onclick="abrirDropdown()">— Seleccioná un cliente —</div>
+    <div id="cliente-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:200;background:var(--surface2);border:1px solid var(--border);">
+      <div style="padding:8px;border-bottom:1px solid var(--border);">
+        <input type="text" id="dd-search" placeholder="Buscar..." autocomplete="off"
+          oninput="renderDropdownItems(this.value)" style="margin:0;">
+      </div>
+      <div id="dd-items" style="max-height:200px;overflow-y:auto;"></div>
+    </div>
   </div>
   <button class="btn btn-sm btn-green" id="btn-agregar-cliente">AGREGAR</button>
 </div>
