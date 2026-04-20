@@ -23,14 +23,14 @@ const COL_DEUDAS = "deudas";
 
 /* ── USUARIOS ── */
 const USERS = {
-  "camion1": { password: "chofer.2026", role: "chofer",       nombre: "CEL1"   },
-  "camion2": { password: "chofer.2026", role: "chofer",       nombre: "CEL2"   },
-  "camion3": { password: "chofer.2026", role: "chofer",       nombre: "CEL3"   },
-  "camion4": { password: "chofer.2026", role: "chofer",       nombre: "CEL4"   },
-  "camion5": { password: "chofer.2026", role: "chofer",       nombre: "CEL5"   },
-  "camion6": { password: "chofer.2026", role: "chofer",       nombre: "CEL6"   },
-  "camion7": { password: "chofer.2026", role: "chofer",       nombre: "CEL7"   },
-  "Admin":   { password: "Admin.2026",  role: "visualizador", nombre: "Romero" },
+  "camionero1": { password: "chofer.2026", role: "chofer",       nombre: "CEL1"   },
+  "camionero2": { password: "chofer.2026", role: "chofer",       nombre: "CEL2"   },
+  "camionero3": { password: "chofer.2026", role: "chofer",       nombre: "CEL3"   },
+  "camionero4": { password: "chofer.2026", role: "chofer",       nombre: "CEL4"   },
+  "camionero5": { password: "chofer.2026", role: "chofer",       nombre: "CEL5"   },
+  "camionero6": { password: "chofer.2026", role: "chofer",       nombre: "CEL6"   },
+  "camionero7": { password: "chofer.2026", role: "chofer",       nombre: "CEL7"   },
+  "Admin":      { password: "Admin.2026",  role: "visualizador", nombre: "Romero" },
 };
 
 /* ── CAMIONES ── */
@@ -322,12 +322,12 @@ function abrirDropdown() {
   if (!lista) return;
   renderDropdownItems('');
   lista.style.display = 'block';
-  // Foco al input de búsqueda dentro del dropdown
-  setTimeout(() => {
-    const s = document.getElementById('dd-search');
-    if (s) s.focus();
-  }, 50);
+  // En móvil, focus() solo funciona si es llamado sincrónicamente desde el evento
+  const s = document.getElementById('dd-search');
+  if (s) s.focus();
 }
+
+window.abrirDropdown = abrirDropdown;
 
 function renderDropdownItems(filtro) {
   const agregados = state.viajeActivo ? state.viajeActivo.clientes.map(c => c.nombre) : [];
@@ -352,9 +352,8 @@ function renderDropdownItems(filtro) {
 
 window.seleccionarCliente = function(nombre) {
   clienteSeleccionado = nombre;
-  // Mostrar nombre seleccionado en el trigger
   const trigger = document.getElementById('dd-trigger');
-  if (trigger) trigger.textContent = nombre;
+  if (trigger) { trigger.value = nombre; trigger.blur(); }
   const lista = document.getElementById('cliente-dropdown');
   if (lista) lista.style.display = 'none';
   const search = document.getElementById('dd-search');
@@ -377,7 +376,7 @@ document.getElementById('btn-agregar-cliente').addEventListener('click', () => {
   state.viajeActivo.clientes.push({ nombre, dejan: '', devuelven: '', done: false });
   clienteSeleccionado = '';
   const trigger = document.getElementById('dd-trigger');
-  if (trigger) trigger.textContent = '— Seleccioná un cliente —';
+  if (trigger) trigger.value = '';
   renderClientesViaje();
   poblarDesplegable();
   syncViaje();
