@@ -500,7 +500,7 @@ document.querySelectorAll('.vis-tab').forEach(tab => {
     content.style.display = 'block';
     if (tab.dataset.tab === 'deudas')    renderDeudas();
     if (tab.dataset.tab === 'registros') aplicarFiltros();
-    if (tab.dataset.tab === 'graficos')  renderGraficos();
+    if (tab.dataset.tab === 'graficos')  setTimeout(renderGraficos, 80);
   });
 });
 
@@ -694,9 +694,12 @@ function destroyChart(id) {
 
 function renderGraficos() {
   if (typeof Chart === 'undefined') {
-    setTimeout(renderGraficos, 200);
+    setTimeout(renderGraficos, 300);
     return;
   }
+  // Forzar que el tab sea visible antes de renderizar
+  const tab = document.getElementById('tab-graficos');
+  if (!tab || tab.style.display === 'none') return;
 
   Chart.defaults.color = '#8a7055';
   Chart.defaults.borderColor = '#3d2e14';
