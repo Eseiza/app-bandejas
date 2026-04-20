@@ -9,7 +9,7 @@
 </head>
 <body>
 
-<!-- ══════════ LOGIN ══════════ -->
+<!-- LOGIN -->
 <div id="screen-login">
   <div class="login-box">
     <div class="login-brand">
@@ -20,9 +20,7 @@
       </div>
     </div>
     <div class="login-sub">SISTEMA DE GESTIÓN DE BANDEJAS</div>
-    <div class="login-tagline">
-      <span>TI 2026</span>
-</div>
+    <div class="login-tagline"><span>TI 2026</span></div>
     <div class="field">
       <label>Seleccioná tu rol</label>
       <div class="role-grid">
@@ -50,7 +48,7 @@
   </div>
 </div>
 
-<!-- ══════════ SCREEN CHOFER ══════════ -->
+<!-- SCREEN CHOFER -->
 <div id="screen-chofer" style="display:none;flex-direction:column;min-height:100vh;width:100%">
   <header>
     <div class="logo">
@@ -112,19 +110,22 @@
     </div>
     <div class="card add-cliente-card">
       <div class="card-title">Agregar cliente al viaje</div>
-    <div class="add-cliente-row">
-  <div id="cliente-search-wrap" style="flex:1;position:relative;">
-    <div id="dd-trigger" class="dd-trigger" onclick="abrirDropdown()">— Seleccioná un cliente —</div>
-    <div id="cliente-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:200;background:var(--surface2);border:1px solid var(--border);">
-      <div style="padding:8px;border-bottom:1px solid var(--border);">
-        <input type="text" id="dd-search" placeholder="Buscar..." autocomplete="off"
-          oninput="renderDropdownItems(this.value)" style="margin:0;">
+      <div class="add-cliente-row">
+        <div id="cliente-search-wrap" style="flex:1;position:relative;">
+          <input type="text" id="dd-trigger" class="dd-trigger" readonly
+            placeholder="— Seleccioná un cliente —"
+            onfocus="abrirDropdown()" onclick="abrirDropdown()"
+            style="cursor:pointer;caret-color:transparent;">
+          <div id="cliente-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:200;background:var(--surface2);border:1px solid var(--border);">
+            <div style="padding:8px;border-bottom:1px solid var(--border);">
+              <input type="text" id="dd-search" placeholder="Buscar cliente..." autocomplete="off"
+                oninput="renderDropdownItems(this.value)" style="margin:0;">
+            </div>
+            <div id="dd-items" style="max-height:220px;overflow-y:auto;"></div>
+          </div>
+        </div>
+        <button class="btn btn-sm btn-green" id="btn-agregar-cliente">AGREGAR</button>
       </div>
-      <div id="dd-items" style="max-height:200px;overflow-y:auto;"></div>
-    </div>
-  </div>
-  <button class="btn btn-sm btn-green" id="btn-agregar-cliente">AGREGAR</button>
-</div>
     </div>
     <div class="card" style="padding:0;overflow:hidden">
       <div style="padding:14px 16px;border-bottom:1px solid var(--border)">
@@ -136,7 +137,7 @@
   </div>
 </div>
 
-<!-- ══════════ SCREEN VISUALIZADOR ══════════ -->
+<!-- SCREEN VISUALIZADOR -->
 <div id="screen-vis" style="display:none;flex-direction:column;min-height:100vh">
   <header>
     <div class="logo">
@@ -152,7 +153,6 @@
     </div>
   </header>
 
-  <!-- TABS -->
   <div class="vis-tabs">
     <div class="vis-tab active" data-tab="registros">📋 Registros</div>
     <div class="vis-tab" data-tab="deudas">📦 Deudas</div>
@@ -164,14 +164,11 @@
       <div class="section-title" style="margin:0">REGISTROS</div>
       <button class="btn btn-sm" id="btn-refresh-vis">↻</button>
     </div>
-
     <div class="kpi-row">
       <div class="kpi green"><div class="kpi-val" id="vis-kpi-viajes">0</div><div class="kpi-label">Viajes</div></div>
       <div class="kpi"><div class="kpi-val" id="vis-kpi-salen">0</div><div class="kpi-label">Salen</div></div>
       <div class="kpi"><div class="kpi-val" id="vis-kpi-vuelven">0</div><div class="kpi-label">Vuelven</div></div>
     </div>
-
-    <!-- FILTROS -->
     <div class="card">
       <div class="card-title">Filtros</div>
       <div class="filtros-grid">
@@ -185,15 +182,11 @@
         </div>
         <div class="field mb-0">
           <label>Cliente</label>
-          <select id="filtro-cliente">
-            <option value="">Todos</option>
-          </select>
+          <select id="filtro-cliente"><option value="">Todos</option></select>
         </div>
         <div class="field mb-0">
           <label>Chofer</label>
-          <select id="filtro-chofer">
-            <option value="">Todos</option>
-          </select>
+          <select id="filtro-chofer"><option value="">Todos</option></select>
         </div>
       </div>
       <div style="display:flex;gap:8px;margin-top:14px">
@@ -201,7 +194,6 @@
         <button class="btn btn-sm btn-outline" id="btn-limpiar-filtros">LIMPIAR</button>
       </div>
     </div>
-
     <div class="card" style="padding:0;overflow:hidden;overflow-x:auto">
       <table class="tbl">
         <thead>
@@ -223,7 +215,6 @@
       <div class="section-title" style="margin:0">DEUDA DE BANDEJAS</div>
       <button class="btn btn-sm" id="btn-refresh-deudas">↻</button>
     </div>
-
     <div class="card" style="padding:0;overflow:hidden">
       <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
         <div class="card-title mb-0">Bandejas pendientes por cliente</div>
@@ -249,7 +240,6 @@
   </div>
 </div>
 
-<!-- TOAST -->
 <div class="toast" id="toast"></div>
 
 <script type="module" src="app.js"></script>
