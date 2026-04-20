@@ -633,3 +633,128 @@ header {
   .kpi         { padding: 12px 10px; }
   .kpi-label   { font-size: 8px; }
 }
+
+/* ══ GRAFICOS ══ */
+#tab-graficos .card {
+  overflow: hidden;
+}
+
+#tab-graficos canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+#chart-salen-vuelven,
+#chart-diferencia,
+#chart-choferes,
+#chart-deuda-clientes {
+  min-height: 200px;
+}
+
+/* ══ RESPONSIVE — TABLET Y DESKTOP ══ */
+@media (min-width: 640px) {
+  .login-box {
+    padding: 48px 44px;
+  }
+
+  .app-content {
+    padding: 28px 32px 80px;
+  }
+
+  .kpi-val { font-size: 42px; }
+  .kpi     { padding: 18px 16px; }
+
+  .filtros-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .cl-row-bottom {
+    padding-left: 38px;
+  }
+
+  .cl-input {
+    font-size: 20px;
+    padding: 12px 10px;
+  }
+
+  .section-title {
+    font-size: 34px;
+  }
+
+  .deuda-num {
+    font-size: 32px;
+  }
+}
+
+@media (min-width: 900px) {
+  body {
+    background-image:
+      radial-gradient(ellipse at top, rgba(200,134,10,.08) 0%, transparent 50%),
+      var(--bg);
+  }
+
+  #screen-login {
+    background:
+      radial-gradient(ellipse at 30% 30%, rgba(200,134,10,.10) 0%, transparent 55%),
+      radial-gradient(ellipse at 70% 70%, rgba(232,69,44,.06) 0%, transparent 55%),
+      var(--bg);
+  }
+
+  header {
+    padding: 0 32px;
+    height: 60px;
+  }
+
+  .logo-text   { font-size: 24px; }
+  .logo-sub    { font-size: 9px; }
+  .logo-icon   { font-size: 26px; }
+
+  .vis-tabs {
+    top: 60px;
+  }
+
+  .app-content {
+    max-width: 860px;
+    padding: 32px 40px 80px;
+  }
+
+  .kpi-row {
+    gap: 12px;
+  }
+
+  .kpi-val   { font-size: 48px; }
+  .kpi-label { font-size: 10px; }
+  .kpi       { padding: 20px 18px; }
+
+  .card {
+    padding: 22px 20px;
+    margin-bottom: 16px;
+  }
+
+  .tbl th { font-size: 10px; padding: 11px 14px; }
+  .tbl td { font-size: 14px; padding: 12px 14px; }
+
+  .deuda-row    { padding: 16px 20px; }
+  .deuda-nombre { font-size: 15px; }
+  .deuda-num    { font-size: 34px; min-width: 56px; }
+
+  .modal { padding: 36px 32px; max-width: 440px; }
+
+  /* Gráficos en grid 2x2 en desktop */
+  #tab-graficos .charts-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  #tab-graficos .charts-grid .card {
+    margin-bottom: 0;
+  }
+}
+
+@media (min-width: 1200px) {
+  .app-content {
+    max-width: 1060px;
+  }
+}
