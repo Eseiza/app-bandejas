@@ -758,3 +758,22 @@ header {
     max-width: 1060px;
   }
 }
+
+/* ══ FIX GRAFICOS POSICION ══ */
+#tab-graficos {
+  padding-top: 16px;
+}
+
+#tab-graficos .section-header {
+  margin-bottom: 12px;
+}
+
+.charts-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.charts-grid .card {
+  margin-bottom: 0;
+}
