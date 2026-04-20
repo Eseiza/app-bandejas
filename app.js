@@ -23,14 +23,14 @@ const COL_DEUDAS = "deudas";
 
 /* ── USUARIOS ── */
 const USERS = {
-  "camion1": { password: "chofer.2026", role: "chofer",       nombre: "CEL1"   },
-  "camion2": { password: "chofer.2026", role: "chofer",       nombre: "CEL2"   },
-  "camion3": { password: "chofer.2026", role: "chofer",       nombre: "CEL3"   },
-  "camion4": { password: "chofer.2026", role: "chofer",       nombre: "CEL4"   },
-  "camion5": { password: "chofer.2026", role: "chofer",       nombre: "CEL5"   },
-  "camion6": { password: "chofer.2026", role: "chofer",       nombre: "CEL6"   },
-  "camion7": { password: "chofer.2026", role: "chofer",       nombre: "CEL7"   },
-  "Admin":   { password: "Admin.2026",  role: "visualizador", nombre: "Romero" },
+  "camionero1": { password: "chofer.2026", role: "chofer",       nombre: "CEL1"   },
+  "camionero2": { password: "chofer.2026", role: "chofer",       nombre: "CEL2"   },
+  "camionero3": { password: "chofer.2026", role: "chofer",       nombre: "CEL3"   },
+  "camionero4": { password: "chofer.2026", role: "chofer",       nombre: "CEL4"   },
+  "camionero5": { password: "chofer.2026", role: "chofer",       nombre: "CEL5"   },
+  "camionero6": { password: "chofer.2026", role: "chofer",       nombre: "CEL6"   },
+  "camionero7": { password: "chofer.2026", role: "chofer",       nombre: "CEL7"   },
+  "Admin":      { password: "Admin.2026",  role: "visualizador", nombre: "Romero" },
 };
 
 /* ── CAMIONES ── */
@@ -500,6 +500,7 @@ document.querySelectorAll('.vis-tab').forEach(tab => {
     content.style.display = 'block';
     if (tab.dataset.tab === 'deudas')    renderDeudas();
     if (tab.dataset.tab === 'registros') aplicarFiltros();
+    if (tab.dataset.tab === 'graficos')  renderGraficos();
   });
 });
 
@@ -677,3 +678,196 @@ document.getElementById('modal-guardar').addEventListener('click', async () => {
     showToast('Error al guardar deuda: ' + e.message, true);
   }
 });
+
+/* ══════════════════════════════════════
+   GRÁFICOS
+══════════════════════════════════════ */
+
+const chartInstances = {};
+
+function destroyChart(id) {
+  if (chartInstances[id]) {
+    chartInstances[id].destroy();
+    delete chartInstances[id];
+  }
+}
+
+function renderGraficos() {
+  if (typeof Chart === 'undefined') {
+    setTimeout(renderGraficos, 200);
+    return;
+  }
+
+  Chart.defaults.color = '#8a7055';
+  Chart.defaults.borderColor = '#3d2e14';
+  Chart.defaults.font.family = 'DM Mono, monospace';
+  Chart.defaults.font.size   = 11;
+
+  const viajes = state.viajes;
+
+  /* ── 1. Salen vs Devuelven por día ── */
+  const porDia = {};
+  viajes.forEach(v => {
+    const dia = v.fecha ? v.fecha.slice(0,10) : '';
+    if (!dia) return;
+    if (!porDia[dia]) porDia[dia] = { salen: 0, vuelven: 0 };
+    porDia[dia].salen   += v.bandejas_salen || 0;
+    porDia[dia].vuelven += (v.clientes||[]).reduce((a,c) => a + (parseInt(c.devuelven)||0), 0);
+  });
+  const diasOrdenados = Object.keys(porDia).sort();
+  const labelsDias    = diasOrdenados.map(d => {
+    const [y,m,day] = d.split('-');
+    return `${day}/${m}`;
+  });
+
+  destroyChart('salen-vuelven');
+  chartInstances['salen-vuelven'] = new Chart(
+    document.getElementById('chart-salen-vuelven'), {
+    type: 'bar',
+    data: {
+      labels: labelsDias,
+      datasets: [
+        {
+          label: 'Salen',
+          data: diasOrdenados.map(d => porDia[d].salen),
+          backgroundColor: 'rgba(200,134,10,0.7)',
+          borderColor: '#c8860a',
+          borderWidth: 1,
+          borderRadius: 3,
+        },
+        {
+          label: 'Devuelven',
+          data: diasOrdenados.map(d => porDia[d].vuelven),
+          backgroundColor: 'rgba(90,158,74,0.7)',
+          borderColor: '#5a9e4a',
+          borderWidth: 1,
+          borderRadius: 3,
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: '#8a7055' } } },
+      scales: {
+        x: { grid: { color: '#3d2e14' }, ticks: { color: '#8a7055' } },
+        y: { grid: { color: '#3d2e14' }, ticks: { color: '#8a7055' }, beginAtZero: true }
+      }
+    }
+  });
+
+  /* ── 2. Diferencia acumulada por día ── */
+  let acumulado = 0;
+  const difAcum = diasOrdenados.map(d => {
+    acumulado += porDia[d].salen - porDia[d].vuelven;
+    return acumulado;
+  });
+
+  destroyChart('diferencia');
+  chartInstances['diferencia'] = new Chart(
+    document.getElementById('chart-diferencia'), {
+    type: 'line',
+    data: {
+      labels: labelsDias,
+      datasets: [{
+        label: 'Diferencia acumulada',
+        data: difAcum,
+        borderColor: '#e8452c',
+        backgroundColor: 'rgba(232,69,44,0.10)',
+        pointBackgroundColor: '#e8452c',
+        pointRadius: 4,
+        fill: true,
+        tension: 0.3,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: '#8a7055' } } },
+      scales: {
+        x: { grid: { color: '#3d2e14' }, ticks: { color: '#8a7055' } },
+        y: { grid: { color: '#3d2e14' }, ticks: { color: '#8a7055' } }
+      }
+    }
+  });
+
+  /* ── 3. Viajes por chofer ── */
+  const porChofer = {};
+  viajes.forEach(v => {
+    if (!v.chofer) return;
+    porChofer[v.chofer] = (porChofer[v.chofer] || 0) + 1;
+  });
+  const chofOrdenados = Object.entries(porChofer).sort((a,b) => b[1]-a[1]);
+
+  destroyChart('choferes');
+  chartInstances['choferes'] = new Chart(
+    document.getElementById('chart-choferes'), {
+    type: 'bar',
+    data: {
+      labels: chofOrdenados.map(c => c[0]),
+      datasets: [{
+        label: 'Viajes',
+        data: chofOrdenados.map(c => c[1]),
+        backgroundColor: [
+          'rgba(200,134,10,0.75)',
+          'rgba(90,158,74,0.75)',
+          'rgba(232,69,44,0.75)',
+          'rgba(200,134,10,0.5)',
+          'rgba(90,158,74,0.5)',
+        ],
+        borderWidth: 0,
+        borderRadius: 3,
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: '#3d2e14' }, ticks: { color: '#8a7055' }, beginAtZero: true },
+        y: { grid: { color: '#3d2e14' }, ticks: { color: '#8a7055' } }
+      }
+    }
+  });
+
+  /* ── 4. Top 10 clientes con mayor deuda ── */
+  const deudaClientes = CLIENTES_LISTA.map(nombre => {
+    const deudaCalc = calcularDeudaCliente(nombre);
+    const ajuste    = state.deudas[nombre] || 0;
+    return { nombre, total: deudaCalc + ajuste };
+  })
+  .filter(c => c.total > 0)
+  .sort((a,b) => b.total - a.total)
+  .slice(0, 10);
+
+  destroyChart('deuda-clientes');
+  chartInstances['deuda-clientes'] = new Chart(
+    document.getElementById('chart-deuda-clientes'), {
+    type: 'bar',
+    data: {
+      labels: deudaClientes.map(c => {
+        const nombre = c.nombre;
+        return nombre.length > 22 ? nombre.slice(0,22) + '…' : nombre;
+      }),
+      datasets: [{
+        label: 'Bandejas adeudadas',
+        data: deudaClientes.map(c => c.total),
+        backgroundColor: 'rgba(232,69,44,0.75)',
+        borderColor: '#e8452c',
+        borderWidth: 1,
+        borderRadius: 3,
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: '#3d2e14' }, ticks: { color: '#8a7055' }, beginAtZero: true },
+        y: { grid: { color: '#3d2e14' }, ticks: { color: '#8a7055', font: { size: 10 } } }
+      }
+    }
+  });
+}
