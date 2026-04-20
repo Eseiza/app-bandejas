@@ -500,7 +500,7 @@ document.querySelectorAll('.vis-tab').forEach(tab => {
     content.style.display = 'block';
     if (tab.dataset.tab === 'deudas')    renderDeudas();
     if (tab.dataset.tab === 'registros') aplicarFiltros();
-    if (tab.dataset.tab === 'graficos')  setTimeout(renderGraficos, 80);
+    if (tab.dataset.tab === 'graficos')  setTimeout(renderGraficos, 120);
   });
 });
 
@@ -835,42 +835,75 @@ function renderGraficos() {
   });
 
   /* ── 4. Top 10 clientes con mayor deuda ── */
-  const deudaClientes = CLIENTES_LISTA.map(nombre => {
+  // Forzar resize de charts anteriores ya renderizados
+  Object.values(chartInstances).forEach(c => { try { c.resize(); } catch {} });
+
+  // Tomar todos los clientes que aparecen en viajes, calcular deuda real
+  const clientesConViajes = [...new Set(
+    state.viajes.flatMap(v => (v.clientes||[]).map(c => c.nombre))
+  )];
+
+  const todosParaChart = [...new Set([...clientesConViajes, ...Object.keys(state.deudas)])];
+
+  let deudaClientes = todosParaChart.map(nombre => {
     const deudaCalc = calcularDeudaCliente(nombre);
-    const ajuste    = state.deudas[nombre] || 0;
+    const idDoc     = nombre.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 100);
+    const ajuste    = state.deudas[idDoc] || state.deudas[nombre] || 0;
     return { nombre, total: deudaCalc + ajuste };
   })
-  .filter(c => c.total > 0)
+  .filter(c => c.total !== 0)
   .sort((a,b) => b.total - a.total)
   .slice(0, 10);
 
   destroyChart('deuda-clientes');
-  chartInstances['deuda-clientes'] = new Chart(
-    document.getElementById('chart-deuda-clientes'), {
-    type: 'bar',
-    data: {
-      labels: deudaClientes.map(c => {
-        const nombre = c.nombre;
-        return nombre.length > 22 ? nombre.slice(0,22) + '…' : nombre;
-      }),
-      datasets: [{
-        label: 'Bandejas adeudadas',
-        data: deudaClientes.map(c => c.total),
-        backgroundColor: 'rgba(232,69,44,0.75)',
-        borderColor: '#e8452c',
-        borderWidth: 1,
-        borderRadius: 3,
-      }]
-    },
-    options: {
-      indexAxis: 'y',
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
-      scales: {
-        x: { grid: { color: '#3d2e14' }, ticks: { color: '#8a7055' }, beginAtZero: true },
-        y: { grid: { color: '#3d2e14' }, ticks: { color: '#8a7055', font: { size: 10 } } }
-      }
+  const canvasDeuda = document.getElementById('chart-deuda-clientes');
+
+  if (!deudaClientes.length) {
+    const parent = canvasDeuda.parentElement;
+    canvasDeuda.style.display = 'none';
+    if (!parent.querySelector('.chart-empty')) {
+      const msg = document.createElement('div');
+      msg.className = 'chart-empty';
+      msg.textContent = 'Sin deudas registradas aún';
+      msg.style.cssText = 'color:#8a7055;font-family:var(--font-mono);font-size:12px;text-align:center;padding:60px 0;letter-spacing:1px;';
+      parent.appendChild(msg);
     }
-  });
+  } else {
+    canvasDeuda.style.display = 'block';
+    const emptyMsg = canvasDeuda.parentElement.querySelector('.chart-empty');
+    if (emptyMsg) emptyMsg.remove();
+
+    chartInstances['deuda-clientes'] = new Chart(canvasDeuda, {
+      type: 'bar',
+      data: {
+        labels: deudaClientes.map(c => {
+          const nombre = c.nombre;
+          return nombre.length > 22 ? nombre.slice(0,22) + '…' : nombre;
+        }),
+        datasets: [{
+          label: 'Bandejas adeudadas',
+          data: deudaClientes.map(c => c.total),
+          backgroundColor: deudaClientes.map(c => c.total > 0 ? 'rgba(232,69,44,0.75)' : 'rgba(90,158,74,0.75)'),
+          borderColor:     deudaClientes.map(c => c.total > 0 ? '#e8452c' : '#5a9e4a'),
+          borderWidth: 1,
+          borderRadius: 3,
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { color: '#3d2e14' }, ticks: { color: '#8a7055' }, beginAtZero: true },
+          y: { grid: { color: '#3d2e14' }, ticks: { color: '#8a7055', font: { size: 10 } } }
+        }
+      }
+    });
+  }
+
+  // Forzar resize de todos los charts una vez que el DOM está estable
+  setTimeout(() => {
+    Object.values(chartInstances).forEach(c => { try { c.resize(); } catch {} });
+  }, 100);
 }
