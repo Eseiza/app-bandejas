@@ -777,3 +777,24 @@ header {
 .charts-grid .card {
   margin-bottom: 0;
 }
+
+/* ══ LOGOUT ══ */
+.btn-logout {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  padding: 5px 10px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: all .2s;
+  white-space: nowrap;
+}
+
+.btn-logout:hover,
+.btn-logout:active {
+  border-color: var(--accent2);
+  color: var(--accent2);
+}
