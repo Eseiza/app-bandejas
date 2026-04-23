@@ -23,14 +23,14 @@ const COL_DEUDAS = "deudas";
 
 /* ── USUARIOS ── */
 const USERS = {
-  "camion1": { password: "chofer.2026", role: "chofer",       nombre: "CEL1"   },
-  "camion2": { password: "chofer.2026", role: "chofer",       nombre: "CEL2"   },
-  "camion3": { password: "chofer.2026", role: "chofer",       nombre: "CEL3"   },
-  "camion4": { password: "chofer.2026", role: "chofer",       nombre: "CEL4"   },
-  "camion5": { password: "chofer.2026", role: "chofer",       nombre: "CEL5"   },
-  "camion6": { password: "chofer.2026", role: "chofer",       nombre: "CEL6"   },
-  "camion7": { password: "chofer.2026", role: "chofer",       nombre: "CEL7"   },
-  "Admin":   { password: "Admin.2026",  role: "visualizador", nombre: "Romero" },
+  "camionero1": { password: "chofer.2026", role: "chofer",       nombre: "CEL1"   },
+  "camionero2": { password: "chofer.2026", role: "chofer",       nombre: "CEL2"   },
+  "camionero3": { password: "chofer.2026", role: "chofer",       nombre: "CEL3"   },
+  "camionero4": { password: "chofer.2026", role: "chofer",       nombre: "CEL4"   },
+  "camionero5": { password: "chofer.2026", role: "chofer",       nombre: "CEL5"   },
+  "camionero6": { password: "chofer.2026", role: "chofer",       nombre: "CEL6"   },
+  "camionero7": { password: "chofer.2026", role: "chofer",       nombre: "CEL7"   },
+  "Admin":      { password: "Admin.2026",  role: "visualizador", nombre: "Romero" },
 };
 
 /* ── CAMIONES ── */
@@ -146,7 +146,12 @@ function suscribirViajes() {
 function suscribirDeudas() {
   state.unsubDeudas = onSnapshot(collection(db, COL_DEUDAS), (snap) => {
     state.deudas = {};
-    snap.docs.forEach(d => { state.deudas[d.id] = d.data().ajuste || 0; });
+    snap.docs.forEach(d => {
+      const data = d.data();
+      // Guardar por id sanitizado Y por nombre real para que siempre matchee
+      state.deudas[d.id] = data.ajuste || 0;
+      if (data.cliente) state.deudas[data.cliente] = data.ajuste || 0;
+    });
     const tabDeudas = document.getElementById('tab-deudas');
     if (tabDeudas && tabDeudas.style.display !== 'none') renderDeudas();
   });
@@ -156,11 +161,13 @@ function refrescarVistas() {
   if (state.role === 'chofer') {
     actualizarResumenHoy();
   } else {
-    const tabReg   = document.getElementById('tab-registros');
-    const tabDeuda = document.getElementById('tab-deudas');
+    const tabReg      = document.getElementById('tab-registros');
+    const tabDeuda    = document.getElementById('tab-deudas');
+    const tabGraficos = document.getElementById('tab-graficos');
     poblarFiltros();
-    if (tabReg   && tabReg.style.display   !== 'none') aplicarFiltros();
-    if (tabDeuda && tabDeuda.style.display !== 'none') renderDeudas();
+    if (tabReg      && tabReg.style.display      !== 'none') aplicarFiltros();
+    if (tabDeuda    && tabDeuda.style.display    !== 'none') renderDeudas();
+    if (tabGraficos && tabGraficos.style.display !== 'none') setTimeout(renderGraficos, 120);
   }
 }
 
@@ -204,13 +211,41 @@ function doLogin() {
   if (state.role === 'chofer') {
     document.getElementById('screen-chofer').style.cssText = 'display:flex;flex-direction:column;min-height:100vh;width:100%';
     document.getElementById('chofer-nombre').textContent = user.nombre;
-    suscribirViajes();
-    mostrarPantallaInicio();
+    // Suscribir y después verificar si hay viaje abierto
+    const q = query(collection(db, COL_VIAJES), orderBy('timestamp', 'asc'));
+    state.unsubViajes = onSnapshot(q, (snap) => {
+      state.viajes = snap.docs.map(d => ({ firestoreId: d.id, ...d.data() }));
+      refrescarVistas();
+    }, (err) => showToast('Error Firestore: ' + err.message, true));
+
+    // Buscar viaje no cerrado de este usuario
+    recuperarViajeAbierto();
   } else {
     document.getElementById('screen-vis').style.display = 'flex';
     document.getElementById('vis-nombre').textContent = user.nombre;
     suscribirViajes();
     suscribirDeudas();
+  }
+}
+
+async function recuperarViajeAbierto() {
+  try {
+    const snap = await getDocs(query(collection(db, COL_VIAJES), orderBy('timestamp', 'asc')));
+    // Buscar viaje no cerrado más reciente
+    const abiertos = snap.docs
+      .map(d => ({ firestoreId: d.id, ...d.data() }))
+      .filter(v => v.cerrado === false);
+
+    if (abiertos.length > 0) {
+      const viaje = abiertos[abiertos.length - 1]; // el más reciente
+      state.viajeActivo = viaje;
+      showToast('Retomando viaje anterior…');
+      mostrarPantallaViaje();
+    } else {
+      mostrarPantallaInicio();
+    }
+  } catch (e) {
+    mostrarPantallaInicio();
   }
 }
 
@@ -907,3 +942,26 @@ function renderGraficos() {
     Object.values(chartInstances).forEach(c => { try { c.resize(); } catch {} });
   }, 100);
 }
+
+/* ══════════════════════════════════════
+   LOGOUT
+══════════════════════════════════════ */
+window.doLogout = function() {
+  if (state.viajeActivo && !confirm('Hay un viaje en curso. ¿Cerrar sesión igual? El viaje quedará guardado como borrador.')) return;
+  if (state.unsubViajes) state.unsubViajes();
+  if (state.unsubDeudas) state.unsubDeudas();
+  // Limpiar state
+  state.role        = null;
+  state.currentUser = '';
+  state.viajes      = [];
+  state.deudas      = {};
+  state.viajeActivo = null;
+  // Ocultar pantallas y mostrar login
+  document.getElementById('screen-chofer').style.display = 'none';
+  document.getElementById('screen-vis').style.display    = 'none';
+  document.getElementById('screen-login').style.display  = 'flex';
+  // Limpiar campos login
+  document.getElementById('login-user').value = '';
+  document.getElementById('login-pass').value = '';
+  document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('selected'));
+};
