@@ -940,9 +940,11 @@ function renderGraficos() {
     Object.values(chartInstances).forEach(c => { try { c.resize(); } catch {} });
   }, 100);
 
-  // Poblar selector de clientes si está vacío
+  // Poblar selector siempre con datos actuales
   const sel = document.getElementById('chart-cliente-select');
-  if (sel && sel.options.length <= 1) {
+  if (sel) {
+    const valorActual = sel.value; // guardar selección actual
+    sel.innerHTML = '<option value="">— Elegí un cliente —</option>';
     const clientesConViajes = [...new Set(
       state.viajes.flatMap(v => (v.clientes||[]).map(c => c.nombre))
     )].sort();
@@ -951,6 +953,10 @@ function renderGraficos() {
       o.value = o.textContent = nombre;
       sel.appendChild(o);
     });
+    // Restaurar selección si el cliente sigue existiendo
+    if (valorActual) sel.value = valorActual;
+    // Si hay un cliente seleccionado, rerenderizar su gráfico
+    if (sel.value) renderChartCliente();
   }
 }
 
@@ -964,10 +970,8 @@ window.renderChartCliente = function() {
   state.viajes.forEach(v => {
     (v.clientes||[]).filter(c => c.nombre === nombre).forEach(c => {
       registros.push({
-        fecha:      v.fecha,
-        dejan:      parseInt(c.dejan)     || 0,
-        devuelven:  parseInt(c.devuelven) || 0,
-        dif:        (parseInt(c.dejan)||0) - (parseInt(c.devuelven)||0),
+        fecha:    v.fecha,
+        dif:      (parseInt(c.dejan)||0) - (parseInt(c.devuelven)||0),
       });
     });
   });
@@ -979,60 +983,50 @@ window.renderChartCliente = function() {
     return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
   });
 
-  // Deuda acumulada
+  // Deuda acumulada visita a visita
   let acum = 0;
   const acumData = registros.map(r => { acum += r.dif; return acum; });
 
   destroyChart('cliente');
   chartInstances['cliente'] = new Chart(
     document.getElementById('chart-cliente'), {
-    type: 'bar',
+    type: 'line',
     data: {
       labels,
-      datasets: [
-        {
-          label: 'Dejan',
-          data: registros.map(r => r.dejan),
-          backgroundColor: 'rgba(200,134,10,0.7)',
-          borderColor: '#c8860a',
-          borderWidth: 1,
-          borderRadius: 3,
-          order: 2,
-        },
-        {
-          label: 'Devuelven',
-          data: registros.map(r => r.devuelven),
-          backgroundColor: 'rgba(90,158,74,0.7)',
-          borderColor: '#5a9e4a',
-          borderWidth: 1,
-          borderRadius: 3,
-          order: 2,
-        },
-        {
-          label: 'Deuda acumulada',
-          data: acumData,
-          type: 'line',
-          borderColor: '#e8452c',
-          backgroundColor: 'rgba(232,69,44,0.1)',
-          pointBackgroundColor: '#e8452c',
-          pointRadius: 4,
-          fill: true,
-          tension: 0.3,
-          order: 1,
-          yAxisID: 'y2',
-        }
-      ]
+      datasets: [{
+        label: 'Deuda acumulada',
+        data: acumData,
+        borderColor: '#e8452c',
+        backgroundColor: 'rgba(232,69,44,0.08)',
+        pointBackgroundColor: acumData.map(v => v > 0 ? '#e8452c' : '#5a9e4a'),
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
+        pointRadius: 5,
+        fill: true,
+        tension: 0.3,
+      }]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: { labels: { color: '#8a7055', font: { family: 'DM Mono, monospace', size: 11 } } }
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => `Deuda: ${ctx.parsed.y} bandejas`
+          }
+        }
       },
       scales: {
         x: { grid: { color: '#3d2e14' }, ticks: { color: '#8a7055' } },
-        y:  { grid: { color: '#3d2e14' }, ticks: { color: '#8a7055' }, beginAtZero: true, title: { display: true, text: 'Bandejas', color: '#8a7055' } },
-        y2: { position: 'right', grid: { display: false }, ticks: { color: '#e8452c' }, title: { display: true, text: 'Deuda acum.', color: '#e8452c' } }
+        y: {
+          grid: { color: '#3d2e14' },
+          ticks: { color: '#8a7055' },
+          // Línea en 0 bien marcada
+          afterDataLimits(axis) {
+            axis.max = Math.max(axis.max, 1);
+          }
+        }
       }
     }
   });
