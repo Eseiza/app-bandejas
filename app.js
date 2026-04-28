@@ -23,14 +23,14 @@ const COL_DEUDAS = "deudas";
 
 /* ── USUARIOS ── */
 const USERS = {
-  "camion1": { password: "chofer.2026", role: "chofer",       nombre: "CEL1"   },
-  "camion2": { password: "chofer.2026", role: "chofer",       nombre: "CEL2"   },
-  "camion3": { password: "chofer.2026", role: "chofer",       nombre: "CEL3"   },
-  "camion4": { password: "chofer.2026", role: "chofer",       nombre: "CEL4"   },
-  "camion5": { password: "chofer.2026", role: "chofer",       nombre: "CEL5"   },
-  "camion6": { password: "chofer.2026", role: "chofer",       nombre: "CEL6"   },
-  "camion7": { password: "chofer.2026", role: "chofer",       nombre: "CEL7"   },
-  "Admin":   { password: "Admin.2026",  role: "visualizador", nombre: "Romero" },
+  "camionero1": { password: "chofer.2026", role: "chofer",       nombre: "CEL1"   },
+  "camionero2": { password: "chofer.2026", role: "chofer",       nombre: "CEL2"   },
+  "camionero3": { password: "chofer.2026", role: "chofer",       nombre: "CEL3"   },
+  "camionero4": { password: "chofer.2026", role: "chofer",       nombre: "CEL4"   },
+  "camionero5": { password: "chofer.2026", role: "chofer",       nombre: "CEL5"   },
+  "camionero6": { password: "chofer.2026", role: "chofer",       nombre: "CEL6"   },
+  "camionero7": { password: "chofer.2026", role: "chofer",       nombre: "CEL7"   },
+  "Admin":      { password: "Admin.2026",  role: "visualizador", nombre: "Romero" },
 };
 
 /* ── CAMIONES ── */
@@ -153,7 +153,7 @@ function suscribirDeudas() {
       if (data.cliente) state.deudas[data.cliente] = data.ajuste || 0;
     });
     const tabDeudas = document.getElementById('tab-deudas');
-    if (tabDeudas && tabDeudas.style.display !== 'none') renderDeudas();
+    if (tabDeudas && tabDeudas.classList.contains('active')) renderDeudas();
   });
 }
 
@@ -165,9 +165,9 @@ function refrescarVistas() {
     const tabDeuda    = document.getElementById('tab-deudas');
     const tabGraficos = document.getElementById('tab-graficos');
     poblarFiltros();
-    if (tabReg      && tabReg.style.display      !== 'none') aplicarFiltros();
-    if (tabDeuda    && tabDeuda.style.display    !== 'none') renderDeudas();
-    if (tabGraficos && tabGraficos.style.display !== 'none') setTimeout(renderGraficos, 120);
+    if (tabReg      && tabReg.classList.contains('active'))      aplicarFiltros();
+    if (tabDeuda    && tabDeuda.classList.contains('active'))    renderDeudas();
+    if (tabGraficos && tabGraficos.classList.contains('active')) setTimeout(renderGraficos, 150);
   }
 }
 
@@ -529,13 +529,14 @@ document.getElementById('btn-volver-inicio').addEventListener('click', async () 
 document.querySelectorAll('.vis-tab').forEach(tab => {
   tab.addEventListener('click', () => {
     document.querySelectorAll('.vis-tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.vis-tab-content').forEach(c => c.style.display = 'none');
+    // Usar clases en lugar de style inline para que el CSS controle el display
+    document.querySelectorAll('.vis-tab-content').forEach(c => c.classList.remove('active'));
     tab.classList.add('active');
     const content = document.getElementById('tab-' + tab.dataset.tab);
-    content.style.display = 'block';
+    content.classList.add('active');
     if (tab.dataset.tab === 'deudas')    renderDeudas();
     if (tab.dataset.tab === 'registros') aplicarFiltros();
-    if (tab.dataset.tab === 'graficos')  setTimeout(renderGraficos, 120);
+    if (tab.dataset.tab === 'graficos')  setTimeout(renderGraficos, 150);
   });
 });
 
@@ -734,7 +735,7 @@ function renderGraficos() {
   }
   // Forzar que el tab sea visible antes de renderizar
   const tab = document.getElementById('tab-graficos');
-  if (!tab || tab.style.display === 'none') return;
+  if (!tab || !tab.classList.contains('active')) return;
 
   Chart.defaults.color = '#8a7055';
   Chart.defaults.borderColor = '#3d2e14';
@@ -829,31 +830,28 @@ function renderGraficos() {
     }
   });
 
-  /* ── 3. Viajes por chofer ── */
-  const porChofer = {};
+  /* ── 3. Viajes por camión ── */
+  const porCamion = {};
   viajes.forEach(v => {
-    if (!v.chofer) return;
-    porChofer[v.chofer] = (porChofer[v.chofer] || 0) + 1;
+    if (!v.camion) return;
+    // Acortar patente para que entre en el eje
+    const label = v.camion.replace('Mercedes Benz ', 'MB ').replace('*', '').trim();
+    porCamion[label] = (porCamion[label] || 0) + 1;
   });
-  const chofOrdenados = Object.entries(porChofer).sort((a,b) => b[1]-a[1]);
+  const camOrdenados = Object.entries(porCamion).sort((a,b) => b[1]-a[1]);
 
   destroyChart('choferes');
   chartInstances['choferes'] = new Chart(
     document.getElementById('chart-choferes'), {
     type: 'bar',
     data: {
-      labels: chofOrdenados.map(c => c[0]),
+      labels: camOrdenados.map(c => c[0]),
       datasets: [{
         label: 'Viajes',
-        data: chofOrdenados.map(c => c[1]),
-        backgroundColor: [
-          'rgba(200,134,10,0.75)',
-          'rgba(90,158,74,0.75)',
-          'rgba(232,69,44,0.75)',
-          'rgba(200,134,10,0.5)',
-          'rgba(90,158,74,0.5)',
-        ],
-        borderWidth: 0,
+        data: camOrdenados.map(c => c[1]),
+        backgroundColor: 'rgba(200,134,10,0.75)',
+        borderColor: '#c8860a',
+        borderWidth: 1,
         borderRadius: 3,
       }]
     },
@@ -864,7 +862,7 @@ function renderGraficos() {
       plugins: { legend: { display: false } },
       scales: {
         x: { grid: { color: '#3d2e14' }, ticks: { color: '#8a7055' }, beginAtZero: true },
-        y: { grid: { color: '#3d2e14' }, ticks: { color: '#8a7055' } }
+        y: { grid: { color: '#3d2e14' }, ticks: { color: '#8a7055', font: { size: 10 } } }
       }
     }
   });
@@ -941,7 +939,104 @@ function renderGraficos() {
   setTimeout(() => {
     Object.values(chartInstances).forEach(c => { try { c.resize(); } catch {} });
   }, 100);
+
+  // Poblar selector de clientes si está vacío
+  const sel = document.getElementById('chart-cliente-select');
+  if (sel && sel.options.length <= 1) {
+    const clientesConViajes = [...new Set(
+      state.viajes.flatMap(v => (v.clientes||[]).map(c => c.nombre))
+    )].sort();
+    clientesConViajes.forEach(nombre => {
+      const o = document.createElement('option');
+      o.value = o.textContent = nombre;
+      sel.appendChild(o);
+    });
+  }
 }
+
+window.renderChartCliente = function() {
+  const sel    = document.getElementById('chart-cliente-select');
+  const nombre = sel ? sel.value : '';
+  if (!nombre) return;
+
+  // Obtener historial del cliente ordenado por fecha
+  const registros = [];
+  state.viajes.forEach(v => {
+    (v.clientes||[]).filter(c => c.nombre === nombre).forEach(c => {
+      registros.push({
+        fecha:      v.fecha,
+        dejan:      parseInt(c.dejan)     || 0,
+        devuelven:  parseInt(c.devuelven) || 0,
+        dif:        (parseInt(c.dejan)||0) - (parseInt(c.devuelven)||0),
+      });
+    });
+  });
+
+  registros.sort((a,b) => new Date(a.fecha) - new Date(b.fecha));
+
+  const labels = registros.map(r => {
+    const d = new Date(r.fecha);
+    return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
+  });
+
+  // Deuda acumulada
+  let acum = 0;
+  const acumData = registros.map(r => { acum += r.dif; return acum; });
+
+  destroyChart('cliente');
+  chartInstances['cliente'] = new Chart(
+    document.getElementById('chart-cliente'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Dejan',
+          data: registros.map(r => r.dejan),
+          backgroundColor: 'rgba(200,134,10,0.7)',
+          borderColor: '#c8860a',
+          borderWidth: 1,
+          borderRadius: 3,
+          order: 2,
+        },
+        {
+          label: 'Devuelven',
+          data: registros.map(r => r.devuelven),
+          backgroundColor: 'rgba(90,158,74,0.7)',
+          borderColor: '#5a9e4a',
+          borderWidth: 1,
+          borderRadius: 3,
+          order: 2,
+        },
+        {
+          label: 'Deuda acumulada',
+          data: acumData,
+          type: 'line',
+          borderColor: '#e8452c',
+          backgroundColor: 'rgba(232,69,44,0.1)',
+          pointBackgroundColor: '#e8452c',
+          pointRadius: 4,
+          fill: true,
+          tension: 0.3,
+          order: 1,
+          yAxisID: 'y2',
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: '#8a7055', font: { family: 'DM Mono, monospace', size: 11 } } }
+      },
+      scales: {
+        x: { grid: { color: '#3d2e14' }, ticks: { color: '#8a7055' } },
+        y:  { grid: { color: '#3d2e14' }, ticks: { color: '#8a7055' }, beginAtZero: true, title: { display: true, text: 'Bandejas', color: '#8a7055' } },
+        y2: { position: 'right', grid: { display: false }, ticks: { color: '#e8452c' }, title: { display: true, text: 'Deuda acum.', color: '#e8452c' } }
+      }
+    }
+  });
+};
 
 /* ══════════════════════════════════════
    LOGOUT
