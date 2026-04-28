@@ -210,10 +210,23 @@
         </tbody>
       </table>
     </div>
+
+    <div class="card" style="margin-top:4px">
+      <div class="card-title">Historial por cliente</div>
+      <div class="field mb-0" style="margin-bottom:12px">
+        <label>Seleccioná un cliente</label>
+        <select id="chart-cliente-select" onchange="renderChartCliente()">
+          <option value="">— Elegí un cliente —</option>
+        </select>
+      </div>
+      <div style="position:relative;height:280px;">
+        <canvas id="chart-cliente"></canvas>
+      </div>
+    </div>
   </div>
 
   <!-- TAB: DEUDAS -->
-  <div id="tab-deudas" class="vis-tab-content app-content" style="display:none">
+  <div id="tab-deudas" class="vis-tab-content app-content">
     <div class="section-header">
       <div class="section-title" style="margin:0">DEUDA DE BANDEJAS</div>
       <button class="btn btn-sm" id="btn-refresh-deudas">↻</button>
@@ -228,7 +241,7 @@
 </div>
 
   <!-- TAB: GRAFICOS -->
-  <div id="tab-graficos" class="vis-tab-content app-content" style="display:none">
+  <div id="tab-graficos" class="vis-tab-content app-content">
     <div class="section-header">
       <div class="section-title" style="margin:0">GRÁFICOS</div>
     </div>
@@ -249,7 +262,7 @@
       </div>
 
       <div class="card">
-        <div class="card-title">Viajes por chofer</div>
+        <div class="card-title">Viajes por camión</div>
         <div style="position:relative;height:260px;">
           <canvas id="chart-choferes"></canvas>
         </div>
