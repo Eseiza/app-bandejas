@@ -237,30 +237,38 @@
     <div class="charts-grid">
       <div class="card">
         <div class="card-title">Bandejas salen vs devuelven por día</div>
+        <div style="display:flex;align-items:center;justify-content:flex-end;margin-bottom:6px;">
+          <button class="btn-expandir" onclick="abrirChartModal('chart-salen-vuelven', 'Bandejas salen vs devuelven por día')">⤢ EXPANDIR</button>
+        </div>
         <div style="position:relative;height:260px;cursor:pointer;" onclick="abrirChartModal('chart-salen-vuelven', 'Bandejas salen vs devuelven por día')">
           <canvas id="chart-salen-vuelven"></canvas>
-          <div style="position:absolute;top:8px;right:8px;font-family:var(--font-mono);font-size:9px;color:var(--muted);letter-spacing:1px;pointer-events:none;">⤢ EXPANDIR</div>
         </div>
       </div>
       <div class="card">
         <div class="card-title">Diferencia acumulada por día (pérdida/ganancia)</div>
+        <div style="display:flex;align-items:center;justify-content:flex-end;margin-bottom:6px;">
+          <button class="btn-expandir" onclick="abrirChartModal('chart-diferencia', 'Diferencia acumulada por día')">⤢ EXPANDIR</button>
+        </div>
         <div style="position:relative;height:260px;cursor:pointer;" onclick="abrirChartModal('chart-diferencia', 'Diferencia acumulada por día')">
           <canvas id="chart-diferencia"></canvas>
-          <div style="position:absolute;top:8px;right:8px;font-family:var(--font-mono);font-size:9px;color:var(--muted);letter-spacing:1px;pointer-events:none;">⤢ EXPANDIR</div>
         </div>
       </div>
       <div class="card">
         <div class="card-title">Viajes por camión</div>
+        <div style="display:flex;align-items:center;justify-content:flex-end;margin-bottom:6px;">
+          <button class="btn-expandir" onclick="abrirChartModal('chart-choferes', 'Viajes por camión')">⤢ EXPANDIR</button>
+        </div>
         <div style="position:relative;height:260px;cursor:pointer;" onclick="abrirChartModal('chart-choferes', 'Viajes por camión')">
           <canvas id="chart-choferes"></canvas>
-          <div style="position:absolute;top:8px;right:8px;font-family:var(--font-mono);font-size:9px;color:var(--muted);letter-spacing:1px;pointer-events:none;">⤢ EXPANDIR</div>
         </div>
       </div>
       <div class="card">
         <div class="card-title">Top 10 clientes con mayor deuda</div>
+        <div style="display:flex;align-items:center;justify-content:flex-end;margin-bottom:6px;">
+          <button class="btn-expandir" onclick="abrirChartModal('chart-deuda-clientes', 'Top 10 clientes con mayor deuda')">⤢ EXPANDIR</button>
+        </div>
         <div style="position:relative;height:260px;cursor:pointer;" onclick="abrirChartModal('chart-deuda-clientes', 'Top 10 clientes con mayor deuda')">
           <canvas id="chart-deuda-clientes"></canvas>
-          <div style="position:absolute;top:8px;right:8px;font-family:var(--font-mono);font-size:9px;color:var(--muted);letter-spacing:1px;pointer-events:none;">⤢ EXPANDIR</div>
         </div>
       </div>
     </div>
@@ -274,9 +282,11 @@
           <option value="">— Elegí un cliente —</option>
         </select>
       </div>
+      <div style="display:flex;align-items:center;justify-content:flex-end;margin-bottom:6px;">
+        <button class="btn-expandir" onclick="abrirChartModal('chart-cliente', 'Historial por cliente')">⤢ EXPANDIR</button>
+      </div>
       <div style="position:relative;height:300px;cursor:pointer;" onclick="abrirChartModal('chart-cliente', 'Historial por cliente')">
         <canvas id="chart-cliente"></canvas>
-        <div style="position:absolute;top:8px;right:8px;font-family:var(--font-mono);font-size:9px;color:var(--muted);letter-spacing:1px;pointer-events:none;">⤢ EXPANDIR</div>
       </div>
     </div>
   </div><!-- fin tab-graficos -->
