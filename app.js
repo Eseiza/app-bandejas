@@ -64,7 +64,7 @@ const CLIENTES_LISTA = [
   "BOSSIO LUIS Y PORTO SERGIO ANDRES S.H.(Calchaqui)",
   "BOSSIO LUIS Y PORTO SERGIO ANDRES S.H.(Av. La Plata)",
   "BOSSIO LUIS Y PORTO SERGIO ANDRES S.H.(Monteverde)",
-  "DISTRIBUIDORA PONCE Y HERRERA SRL EN FORMACION",
+  "DISTRIBUIDORA PONCE Y HERRERE SRL EN FORMACION",
   "DISTRIBUIDORA SARMIENTO S.A.","DISTRIBUIDORA SOURIGUES SRL",
   "DISTRIBUIDORA UDAONDO SOCIEDAD DE RESPONSABILIDAD LIMITADA",
   "DURAN GABRIELA SILVANA","ALIMENTOS BEGONIA S.A.","ENREDADOS SRL",
@@ -940,28 +940,68 @@ function renderGraficos() {
     Object.values(chartInstances).forEach(c => { try { c.resize(); } catch {} });
   }, 100);
 
-  // Poblar selector con TODOS los clientes (lista completa + los que aparecen en viajes)
-  const sel = document.getElementById('chart-cliente-select');
-  if (sel) {
-    const valorActual = sel.value;
-    sel.innerHTML = '<option value="">— Elegí un cliente —</option>';
-    const clientesEnViajes = [...new Set(
-      state.viajes.flatMap(v => (v.clientes||[]).map(c => c.nombre))
-    )];
-    const todosClientes = [...new Set([...CLIENTES_LISTA, ...clientesEnViajes])].sort();
-    todosClientes.forEach(nombre => {
-      const o = document.createElement('option');
-      o.value = o.textContent = nombre;
-      sel.appendChild(o);
-    });
-    if (valorActual) sel.value = valorActual;
-    if (sel.value) renderChartCliente();
-  }
+  // Poblar dropdown de cliente con lista completa
+  poblarChartDD();
 }
 
+let chartClienteActual = '';
+
+function getTodosClientes() {
+  const enViajes = [...new Set(state.viajes.flatMap(v => (v.clientes||[]).map(c => c.nombre)))];
+  return [...new Set([...CLIENTES_LISTA, ...enViajes])].sort();
+}
+
+function poblarChartDD() {
+  // Si hay uno seleccionado y los datos llegaron, rerenderizar
+  if (chartClienteActual) renderChartCliente();
+}
+
+window.abrirChartDD = function() {
+  const dd = document.getElementById('chart-cliente-dropdown');
+  if (!dd) return;
+  filtrarChartDD('');
+  dd.style.display = 'block';
+  setTimeout(() => {
+    const s = document.getElementById('chart-cliente-search');
+    if (s) s.focus();
+  }, 50);
+};
+
+window.filtrarChartDD = function(filtro) {
+  const items = document.getElementById('chart-cliente-items');
+  if (!items) return;
+  const termino = filtro.toLowerCase().trim();
+  const lista = getTodosClientes().filter(c => !termino || c.toLowerCase().includes(termino));
+  if (!lista.length) {
+    items.innerHTML = '<div class="dd-item dd-empty">Sin resultados</div>';
+    return;
+  }
+  items.innerHTML = lista.map(c =>
+    `<div class="dd-item" onmousedown="elegirChartCliente('${c.replace(/'/g, "\'")}')">${c}</div>`
+  ).join('');
+};
+
+window.elegirChartCliente = function(nombre) {
+  chartClienteActual = nombre;
+  const trigger = document.getElementById('chart-cliente-trigger');
+  if (trigger) { trigger.value = nombre; trigger.blur(); }
+  const dd = document.getElementById('chart-cliente-dropdown');
+  if (dd) dd.style.display = 'none';
+  const search = document.getElementById('chart-cliente-search');
+  if (search) search.value = '';
+  renderChartCliente();
+};
+
+document.addEventListener('click', e => {
+  const wrap = document.getElementById('chart-cliente-wrap');
+  if (wrap && !wrap.contains(e.target)) {
+    const dd = document.getElementById('chart-cliente-dropdown');
+    if (dd) dd.style.display = 'none';
+  }
+});
+
 window.renderChartCliente = function() {
-  const sel    = document.getElementById('chart-cliente-select');
-  const nombre = sel ? sel.value : '';
+  const nombre = chartClienteActual;
   if (!nombre) return;
 
   // Obtener historial del cliente ordenado por fecha
