@@ -846,3 +846,22 @@ header {
   .tbl td { font-size: 12px; padding: 8px 8px; }
   .filtros-grid { grid-template-columns: 1fr 1fr; }
 }
+
+/* ══ BOTON EXPANDIR ══ */
+.btn-expandir {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  padding: 4px 10px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all .2s;
+  white-space: nowrap;
+}
+
+.btn-expandir:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
