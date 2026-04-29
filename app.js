@@ -23,14 +23,14 @@ const COL_DEUDAS = "deudas";
 
 /* ── USUARIOS ── */
 const USERS = {
-  "camionero1": { password: "chofer.2026", role: "chofer",       nombre: "CEL1"   },
-  "camionero2": { password: "chofer.2026", role: "chofer",       nombre: "CEL2"   },
-  "camionero3": { password: "chofer.2026", role: "chofer",       nombre: "CEL3"   },
-  "camionero4": { password: "chofer.2026", role: "chofer",       nombre: "CEL4"   },
-  "camionero5": { password: "chofer.2026", role: "chofer",       nombre: "CEL5"   },
-  "camionero6": { password: "chofer.2026", role: "chofer",       nombre: "CEL6"   },
-  "camionero7": { password: "chofer.2026", role: "chofer",       nombre: "CEL7"   },
-  "Admin":      { password: "Admin.2026",  role: "visualizador", nombre: "Romero" },
+  "camion1": { password: "chofer.2026", role: "chofer",       nombre: "CEL1"   },
+  "camion2": { password: "chofer.2026", role: "chofer",       nombre: "CEL2"   },
+  "camion3": { password: "chofer.2026", role: "chofer",       nombre: "CEL3"   },
+  "camion4": { password: "chofer.2026", role: "chofer",       nombre: "CEL4"   },
+  "camion5": { password: "chofer.2026", role: "chofer",       nombre: "CEL5"   },
+  "camion6": { password: "chofer.2026", role: "chofer",       nombre: "CEL6"   },
+  "camion7": { password: "chofer.2026", role: "chofer",       nombre: "CEL7"   },
+  "Admin":   { password: "Admin.2026",  role: "visualizador", nombre: "Romero" },
 };
 
 /* ── CAMIONES ── */
@@ -64,7 +64,7 @@ const CLIENTES_LISTA = [
   "BOSSIO LUIS Y PORTO SERGIO ANDRES S.H.(Calchaqui)",
   "BOSSIO LUIS Y PORTO SERGIO ANDRES S.H.(Av. La Plata)",
   "BOSSIO LUIS Y PORTO SERGIO ANDRES S.H.(Monteverde)",
-  "DISTRIBUIDORA PONCE Y HERRERE SRL EN FORMACION",
+  "DISTRIBUIDORA PONCE Y HERRERA SRL EN FORMACION",
   "DISTRIBUIDORA SARMIENTO S.A.","DISTRIBUIDORA SOURIGUES SRL",
   "DISTRIBUIDORA UDAONDO SOCIEDAD DE RESPONSABILIDAD LIMITADA",
   "DURAN GABRIELA SILVANA","ALIMENTOS BEGONIA S.A.","ENREDADOS SRL",
@@ -825,7 +825,7 @@ function renderGraficos() {
       plugins: { legend: { labels: { color: '#8a7055' } } },
       scales: {
         x: { grid: { color: '#3d2e14' }, ticks: { color: '#8a7055' } },
-        y: { grid: { color: '#3d2e14' }, ticks: { color: '#8a7055' } }
+        y: { grid: { color: '#3d2e14' }, ticks: { color: '#8a7055' }, beginAtZero: true }
       }
     }
   });
@@ -940,22 +940,21 @@ function renderGraficos() {
     Object.values(chartInstances).forEach(c => { try { c.resize(); } catch {} });
   }, 100);
 
-  // Poblar selector siempre con datos actuales
+  // Poblar selector con TODOS los clientes (lista completa + los que aparecen en viajes)
   const sel = document.getElementById('chart-cliente-select');
   if (sel) {
-    const valorActual = sel.value; // guardar selección actual
+    const valorActual = sel.value;
     sel.innerHTML = '<option value="">— Elegí un cliente —</option>';
-    const clientesConViajes = [...new Set(
+    const clientesEnViajes = [...new Set(
       state.viajes.flatMap(v => (v.clientes||[]).map(c => c.nombre))
-    )].sort();
-    clientesConViajes.forEach(nombre => {
+    )];
+    const todosClientes = [...new Set([...CLIENTES_LISTA, ...clientesEnViajes])].sort();
+    todosClientes.forEach(nombre => {
       const o = document.createElement('option');
       o.value = o.textContent = nombre;
       sel.appendChild(o);
     });
-    // Restaurar selección si el cliente sigue existiendo
     if (valorActual) sel.value = valorActual;
-    // Si hay un cliente seleccionado, rerenderizar su gráfico
     if (sel.value) renderChartCliente();
   }
 }
