@@ -23,13 +23,13 @@ const COL_DEUDAS = "deudas";
 
 /* ── USUARIOS ── */
 const USERS = {
-  "camion1": { password: "chofer.2026", role: "chofer",       nombre: "CEL1"   },
-  "camion2": { password: "chofer.2026", role: "chofer",       nombre: "CEL2"   },
-  "camion3": { password: "chofer.2026", role: "chofer",       nombre: "CEL3"   },
-  "camion4": { password: "chofer.2026", role: "chofer",       nombre: "CEL4"   },
-  "camion5": { password: "chofer.2026", role: "chofer",       nombre: "CEL5"   },
-  "camion6": { password: "chofer.2026", role: "chofer",       nombre: "CEL6"   },
-  "camion7": { password: "chofer.2026", role: "chofer",       nombre: "CEL7"   },
+  "camionero1": { password: "chofer.2026", role: "chofer",       nombre: "CEL1"   },
+  "camionero2": { password: "chofer.2026", role: "chofer",       nombre: "CEL2"   },
+  "camionero3": { password: "chofer.2026", role: "chofer",       nombre: "CEL3"   },
+  "camionero4": { password: "chofer.2026", role: "chofer",       nombre: "CEL4"   },
+  "camionero5": { password: "chofer.2026", role: "chofer",       nombre: "CEL5"   },
+  "camionero6": { password: "chofer.2026", role: "chofer",       nombre: "CEL6"   },
+  "camionero7": { password: "chofer.2026", role: "chofer",       nombre: "CEL7"   },
   "Admin":      { password: "Admin.2026",  role: "visualizador", nombre: "Romero" },
 };
 
@@ -64,7 +64,7 @@ const CLIENTES_LISTA = [
   "BOSSIO LUIS Y PORTO SERGIO ANDRES S.H.(Calchaqui)",
   "BOSSIO LUIS Y PORTO SERGIO ANDRES S.H.(Av. La Plata)",
   "BOSSIO LUIS Y PORTO SERGIO ANDRES S.H.(Monteverde)",
-  "DISTRIBUIDORA PONCE Y HERRERA SRL EN FORMACION",
+  "DISTRIBUIDORA PONCE Y HERRERE SRL EN FORMACION",
   "DISTRIBUIDORA SARMIENTO S.A.","DISTRIBUIDORA SOURIGUES SRL",
   "DISTRIBUIDORA UDAONDO SOCIEDAD DE RESPONSABILIDAD LIMITADA",
   "DURAN GABRIELA SILVANA","ALIMENTOS BEGONIA S.A.","ENREDADOS SRL",
@@ -1054,3 +1054,48 @@ window.doLogout = function() {
   document.getElementById('login-pass').value = '';
   document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('selected'));
 };
+
+/* ══════════════════════════════════════
+   GRÁFICO FULLSCREEN
+══════════════════════════════════════ */
+let chartModalInstance = null;
+
+window.abrirChartModal = function(sourceId, titulo) {
+  const sourceChart = chartInstances[sourceId.replace('chart-', '')];
+  if (!sourceChart) return;
+
+  const modal = document.getElementById('chart-modal');
+  const canvas = document.getElementById('chart-modal-canvas');
+  document.getElementById('chart-modal-title').textContent = titulo;
+
+  // Mostrar modal
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+
+  // Destruir instancia previa
+  if (chartModalInstance) { chartModalInstance.destroy(); chartModalInstance = null; }
+
+  // Clonar configuración del chart original
+  const cfg = sourceChart.config;
+  chartModalInstance = new Chart(canvas, {
+    type: cfg.type,
+    data: JSON.parse(JSON.stringify(cfg.data)),
+    options: {
+      ...JSON.parse(JSON.stringify(cfg.options)),
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 400 },
+    }
+  });
+};
+
+window.cerrarChartModal = function() {
+  document.getElementById('chart-modal').style.display = 'none';
+  document.body.style.overflow = '';
+  if (chartModalInstance) { chartModalInstance.destroy(); chartModalInstance = null; }
+};
+
+// Cerrar con Escape
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') cerrarChartModal();
+});
