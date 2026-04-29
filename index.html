@@ -278,9 +278,19 @@
       <div class="card-title">Historial por cliente</div>
       <div class="field" style="margin-bottom:14px">
         <label>Seleccioná un cliente</label>
-        <select id="chart-cliente-select" onchange="renderChartCliente()">
-          <option value="">— Elegí un cliente —</option>
-        </select>
+        <div id="chart-cliente-wrap" style="position:relative;">
+          <input type="text" id="chart-cliente-trigger" readonly
+            placeholder="— Elegí un cliente —"
+            onfocus="abrirChartDD()" onclick="abrirChartDD()"
+            style="cursor:pointer;caret-color:transparent;">
+          <div id="chart-cliente-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:200;background:var(--surface2);border:1px solid var(--border);box-shadow:0 8px 24px rgba(0,0,0,0.5);">
+            <div style="padding:8px;border-bottom:1px solid var(--border);">
+              <input type="text" id="chart-cliente-search" placeholder="Buscar cliente..." autocomplete="off"
+                oninput="filtrarChartDD(this.value)" style="margin:0;">
+            </div>
+            <div id="chart-cliente-items" style="max-height:220px;overflow-y:auto;"></div>
+          </div>
+        </div>
       </div>
       <div style="display:flex;align-items:center;justify-content:flex-end;margin-bottom:6px;">
         <button class="btn-expandir" onclick="abrirChartModal('chart-cliente', 'Historial por cliente')">⤢ EXPANDIR</button>
