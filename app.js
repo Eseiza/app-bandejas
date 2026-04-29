@@ -23,13 +23,13 @@ const COL_DEUDAS = "deudas";
 
 /* ── USUARIOS ── */
 const USERS = {
-  "camion1": { password: "chofer.2026", role: "chofer",       nombre: "CEL1"   },
-  "camion2": { password: "chofer.2026", role: "chofer",       nombre: "CEL2"   },
-  "camion3": { password: "chofer.2026", role: "chofer",       nombre: "CEL3"   },
-  "camion4": { password: "chofer.2026", role: "chofer",       nombre: "CEL4"   },
-  "camion5": { password: "chofer.2026", role: "chofer",       nombre: "CEL5"   },
-  "camion6": { password: "chofer.2026", role: "chofer",       nombre: "CEL6"   },
-  "camion7": { password: "chofer.2026", role: "chofer",       nombre: "CEL7"   },
+  "camionero1": { password: "chofer.2026", role: "chofer",       nombre: "CEL1"   },
+  "camionero2": { password: "chofer.2026", role: "chofer",       nombre: "CEL2"   },
+  "camionero3": { password: "chofer.2026", role: "chofer",       nombre: "CEL3"   },
+  "camionero4": { password: "chofer.2026", role: "chofer",       nombre: "CEL4"   },
+  "camionero5": { password: "chofer.2026", role: "chofer",       nombre: "CEL5"   },
+  "camionero6": { password: "chofer.2026", role: "chofer",       nombre: "CEL6"   },
+  "camionero7": { password: "chofer.2026", role: "chofer",       nombre: "CEL7"   },
   "Admin":      { password: "Admin.2026",  role: "visualizador", nombre: "Romero" },
 };
 
@@ -987,6 +987,11 @@ window.renderChartCliente = function() {
   let acum = 0;
   const acumData = registros.map(r => { acum += r.dif; return acum; });
 
+  // Determinar color según si la deuda final es positiva o negativa
+  const ultimoValor = acumData.length ? acumData[acumData.length - 1] : 0;
+  const lineColor   = ultimoValor >= 0 ? '#e8452c' : '#5a9e4a';
+  const fillColor   = ultimoValor >= 0 ? 'rgba(232,69,44,0.08)' : 'rgba(90,158,74,0.08)';
+
   destroyChart('cliente');
   chartInstances['cliente'] = new Chart(
     document.getElementById('chart-cliente'), {
@@ -996,8 +1001,8 @@ window.renderChartCliente = function() {
       datasets: [{
         label: 'Deuda acumulada',
         data: acumData,
-        borderColor: '#e8452c',
-        backgroundColor: 'rgba(232,69,44,0.08)',
+        borderColor: lineColor,
+        backgroundColor: fillColor,
         pointBackgroundColor: acumData.map(v => v > 0 ? '#e8452c' : '#5a9e4a'),
         pointBorderColor: '#fff',
         pointBorderWidth: 2,
@@ -1013,7 +1018,10 @@ window.renderChartCliente = function() {
         legend: { display: false },
         tooltip: {
           callbacks: {
-            label: ctx => `Deuda: ${ctx.parsed.y} bandejas`
+            label: ctx => {
+              const v = ctx.parsed.y;
+              return v >= 0 ? `Adeudan: ${v} bandejas` : `A favor: ${Math.abs(v)} bandejas`;
+            }
           }
         }
       },
@@ -1021,11 +1029,11 @@ window.renderChartCliente = function() {
         x: { grid: { color: '#3d2e14' }, ticks: { color: '#8a7055' } },
         y: {
           grid: { color: '#3d2e14' },
-          ticks: { color: '#8a7055' },
-          // Línea en 0 bien marcada
-          afterDataLimits(axis) {
-            axis.max = Math.max(axis.max, 1);
-          }
+          ticks: {
+            color: '#8a7055',
+            callback: v => v >= 0 ? v : `(${Math.abs(v)})`
+          },
+          beginAtZero: true,
         }
       }
     }
