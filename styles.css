@@ -798,3 +798,51 @@ header {
   border-color: var(--accent2);
   color: var(--accent2);
 }
+
+/* ══ FIX TABLA RESPONSIVE ══ */
+#tab-registros .card {
+  -webkit-overflow-scrolling: touch;
+}
+
+.tbl-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.tbl {
+  min-width: 560px; /* fuerza scroll horizontal en móvil */
+}
+
+.tbl td:first-child,
+.tbl th:first-child {
+  white-space: nowrap;
+  min-width: 110px;
+}
+
+.tbl td:nth-child(2),
+.tbl th:nth-child(2) {
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ══ DEUDA A FAVOR ══ */
+.deuda-num.favor { color: var(--green); }
+
+.deuda-favor-tag {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 3px 8px;
+  background: rgba(90,158,74,.15);
+  color: var(--green);
+  white-space: nowrap;
+}
+
+@media (max-width: 600px) {
+  .tbl th { font-size: 9px; padding: 8px 8px; }
+  .tbl td { font-size: 12px; padding: 8px 8px; }
+  .filtros-grid { grid-template-columns: 1fr 1fr; }
+}
