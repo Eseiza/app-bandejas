@@ -203,11 +203,11 @@
         <thead>
           <tr>
             <th>Fecha</th><th>Camión</th><th>Chofer</th>
-            <th>Cliente</th><th>Dejan</th><th>Devuelven</th><th>Dif.</th>
+            <th>Cliente</th><th>Dejan</th><th>Devuelven</th><th>Dif.</th><th>Acciones</th>
           </tr>
         </thead>
         <tbody id="vis-tbody">
-          <tr><td colspan="7" class="cell-center text-muted">Sin registros aún</td></tr>
+          <tr><td colspan="8" class="cell-center text-muted">Sin registros aún</td></tr>
         </tbody>
       </table>
       </div>
@@ -315,6 +315,26 @@
     <div style="display:flex;gap:8px;margin-top:8px">
       <button class="btn btn-green" id="modal-guardar" style="flex:1;font-size:16px;padding:12px">GUARDAR</button>
       <button class="btn btn-outline" id="modal-cancelar" style="flex:1;font-size:16px;padding:12px">CANCELAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EDITAR REGISTRO -->
+<div id="modal-registro-overlay" class="modal-overlay" style="display:none">
+  <div class="modal">
+    <div class="modal-title">EDITAR REGISTRO</div>
+    <div class="modal-cliente" id="modal-registro-cliente">—</div>
+    <div class="field">
+      <label>Dejan</label>
+      <input type="number" inputmode="numeric" id="modal-registro-dejan" min="0" placeholder="0">
+    </div>
+    <div class="field mb-0">
+      <label>Devuelven</label>
+      <input type="number" inputmode="numeric" id="modal-registro-devuelven" min="0" placeholder="0">
+    </div>
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button class="btn btn-green" id="modal-registro-guardar" style="flex:1;font-size:16px;padding:12px">GUARDAR</button>
+      <button class="btn btn-outline" id="modal-registro-cancelar" style="flex:1;font-size:16px;padding:12px">CANCELAR</button>
     </div>
   </div>
 </div>
