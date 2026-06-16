@@ -114,6 +114,9 @@ const state = {
   unsubDeudas: null,
 };
 
+// Filas actualmente renderizadas en la tabla de Registros (para editar/eliminar)
+let filasRegistrosActuales = [];
+
 /* ══════════════════════════════════════
    UTILS
 ══════════════════════════════════════ */
@@ -581,8 +584,16 @@ function aplicarFiltros() {
 
   let filas = [];
   state.viajes.forEach(v => {
-    (v.clientes||[]).forEach(cl => {
-      filas.push({ ...cl, fecha: v.fecha, camion: v.camion, chofer: v.chofer, bandejas_salen: v.bandejas_salen });
+    (v.clientes||[]).forEach((cl, idx) => {
+      filas.push({
+        ...cl,
+        fecha: v.fecha,
+        camion: v.camion,
+        chofer: v.chofer,
+        bandejas_salen: v.bandejas_salen,
+        viajeId: v.firestoreId,
+        clienteIndex: idx
+      });
     });
   });
 
@@ -597,11 +608,12 @@ function aplicarFiltros() {
 
 function renderTablaRegistros(filas) {
   const tbody = document.getElementById('vis-tbody');
+  filasRegistrosActuales = filas;
   if (!filas.length) {
-    tbody.innerHTML = '<tr><td colspan="7" class="cell-center text-muted">Sin registros para los filtros aplicados</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" class="cell-center text-muted">Sin registros para los filtros aplicados</td></tr>';
     return;
   }
-  tbody.innerHTML = filas.map(f => {
+  tbody.innerHTML = filas.map((f, i) => {
     const dejan     = parseInt(f.dejan)     || 0;
     const devuelven = parseInt(f.devuelven) || 0;
     const dif       = devuelven - dejan;
@@ -613,6 +625,10 @@ function renderTablaRegistros(filas) {
       <td>${dejan}</td>
       <td>${devuelven}</td>
       <td class="${dif < 0 ? 'text-red' : dif > 0 ? 'text-green' : ''}">${dif > 0 ? '+' : ''}${dif}</td>
+      <td class="reg-acciones">
+        <button class="btn-editar" onclick="abrirModalRegistro(${i})">EDITAR</button>
+        <button class="btn-eliminar" onclick="eliminarRegistro(${i})">✕</button>
+      </td>
     </tr>`;
   }).join('');
 }
@@ -714,6 +730,74 @@ document.getElementById('modal-guardar').addEventListener('click', async () => {
     showToast('Error al guardar deuda: ' + e.message, true);
   }
 });
+
+/* ══════════════════════════════════════
+   MODAL EDITAR REGISTRO
+══════════════════════════════════════ */
+let modalRegistroActivo = null;
+
+window.abrirModalRegistro = function(i) {
+  const fila = filasRegistrosActuales[i];
+  if (!fila) return;
+  modalRegistroActivo = { viajeId: fila.viajeId, clienteIndex: fila.clienteIndex };
+  document.getElementById('modal-registro-cliente').textContent = fila.nombre;
+  document.getElementById('modal-registro-dejan').value     = fila.dejan     || '';
+  document.getElementById('modal-registro-devuelven').value = fila.devuelven || '';
+  document.getElementById('modal-registro-overlay').style.display = 'flex';
+  document.getElementById('modal-registro-dejan').focus();
+};
+
+document.getElementById('modal-registro-cancelar').addEventListener('click', () => {
+  document.getElementById('modal-registro-overlay').style.display = 'none';
+  modalRegistroActivo = null;
+});
+
+document.getElementById('modal-registro-overlay').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('modal-registro-overlay')) {
+    document.getElementById('modal-registro-overlay').style.display = 'none';
+    modalRegistroActivo = null;
+  }
+});
+
+document.getElementById('modal-registro-guardar').addEventListener('click', async () => {
+  if (!modalRegistroActivo) return;
+  const dejan     = document.getElementById('modal-registro-dejan').value;
+  const devuelven = document.getElementById('modal-registro-devuelven').value;
+
+  const viaje = state.viajes.find(v => v.firestoreId === modalRegistroActivo.viajeId);
+  if (!viaje) { showToast('No se encontró el viaje de este registro', true); return; }
+
+  const clientesActualizados = viaje.clientes.map((cl, idx) =>
+    idx === modalRegistroActivo.clienteIndex ? { ...cl, dejan, devuelven } : cl
+  );
+
+  try {
+    await updateDoc(doc(db, COL_VIAJES, viaje.firestoreId), { clientes: clientesActualizados });
+    document.getElementById('modal-registro-overlay').style.display = 'none';
+    modalRegistroActivo = null;
+    showToast('✓ Registro actualizado');
+  } catch (e) {
+    showToast('Error al guardar registro: ' + e.message, true);
+  }
+});
+
+window.eliminarRegistro = async function(i) {
+  const fila = filasRegistrosActuales[i];
+  if (!fila) return;
+  if (!confirm(`¿Eliminar el registro de "${fila.nombre}"? Esta acción no se puede deshacer.`)) return;
+
+  const viaje = state.viajes.find(v => v.firestoreId === fila.viajeId);
+  if (!viaje) { showToast('No se encontró el viaje de este registro', true); return; }
+
+  const clientesActualizados = viaje.clientes.filter((_, idx) => idx !== fila.clienteIndex);
+
+  try {
+    await updateDoc(doc(db, COL_VIAJES, viaje.firestoreId), { clientes: clientesActualizados });
+    showToast('✓ Registro eliminado');
+  } catch (e) {
+    showToast('Error al eliminar registro: ' + e.message, true);
+  }
+};
 
 /* ══════════════════════════════════════
    GRÁFICOS
