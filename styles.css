@@ -235,6 +235,22 @@ select option { background: #241a0a; }
 
 .btn-editar:active { border-color: var(--accent); color: var(--accent); }
 
+.btn-eliminar {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--accent2);
+  padding: 6px 10px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  touch-action: manipulation;
+}
+
+.btn-eliminar:active { border-color: var(--accent2); background: rgba(232,69,44,.12); }
+
 /* ══ HEADER ══ */
 header {
   background: var(--surface);
@@ -557,6 +573,13 @@ header {
 
 .tbl tr:last-child td { border-bottom: none; }
 
+/* ══ ACCIONES DE REGISTRO ══ */
+.reg-acciones {
+  display: flex;
+  gap: 6px;
+  white-space: nowrap;
+}
+
 /* ══ DEUDAS ══ */
 .deuda-row {
   display: flex;
@@ -810,7 +833,7 @@ header {
 }
 
 .tbl {
-  min-width: 560px; /* fuerza scroll horizontal en móvil */
+  min-width: 680px; /* fuerza scroll horizontal en móvil (incluye columna Acciones) */
 }
 
 .tbl td:first-child,
