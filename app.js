@@ -182,12 +182,8 @@ function detachAll() {
 /* ══════════════════════════════════════
    LOGIN
 ══════════════════════════════════════ */
-document.querySelectorAll('.role-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('selected'));
-    btn.classList.add('selected');
-    state.role = btn.dataset.role;
-  });
+document.getElementById('login-role').addEventListener('change', (e) => {
+  state.role = e.target.value || null;
 });
 
 ['login-user', 'login-pass'].forEach(id => {
@@ -1183,7 +1179,7 @@ window.doLogout = function() {
   // Limpiar campos login
   document.getElementById('login-user').value = '';
   document.getElementById('login-pass').value = '';
-  document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('login-role').value = '';
 };
 
 /* ══════════════════════════════════════
