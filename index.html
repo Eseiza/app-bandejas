@@ -22,19 +22,12 @@
     <div class="login-sub">SISTEMA DE GESTIÓN DE BANDEJAS</div>
     <div class="login-tagline"><span>TI 2026</span></div>
     <div class="field">
-      <label>Seleccioná tu rol</label>
-      <div class="role-grid">
-        <div class="role-btn" data-role="chofer">
-          <span class="r-icon">🚚</span>
-          <span class="r-name">Chofer</span>
-          <span class="r-desc">Registra viajes</span>
-        </div>
-        <div class="role-btn" data-role="visualizador">
-          <span class="r-icon">👁️</span>
-          <span class="r-name">Visualizador</span>
-          <span class="r-desc">Solo lectura</span>
-        </div>
-      </div>
+      <label>Rol</label>
+      <select id="login-role">
+        <option value="">— Elegí un rol —</option>
+        <option value="chofer">🚚 Chofer — Registra viajes</option>
+        <option value="visualizador">👁️ Visualizador — Solo lectura</option>
+      </select>
     </div>
     <div class="field">
       <label>Usuario</label>
