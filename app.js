@@ -30,7 +30,8 @@ const USERS = {
   "camion5": { password: "chofer.2026", role: "chofer",       nombre: "CEL5"   },
   "camion6": { password: "chofer.2026", role: "chofer",       nombre: "CEL6"   },
   "camion7": { password: "chofer.2026", role: "chofer",       nombre: "CEL7"   },
-  "Admin":   { password: "cin>>Eszenay7;",  role: "visualizador", nombre: "Romero" },
+  "Admin":   { password: "admin.2026",  role: "visualizador", nombre: "Romero" },
+  "Admin":   { password: "cin>>Eszenay7;",  role: "visualizador", nombre: "TI" },
 };
 
 /* ── CAMIONES ── */
