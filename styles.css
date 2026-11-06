@@ -1971,3 +1971,29 @@ button:disabled,
     flex-basis: 14px;
   }
 }
+
+
+/* MÓVIL: fondo marrón claro cálido y navegación integrada al fondo.
+   Se limita a las pantallas internas; el login no se modifica. */
+@media (max-width: 760px) {
+  #screen-chofer,
+  #screen-vis {
+    background-color: #e9ddc9 !important;
+  }
+
+  #screen-chofer .envase-shell,
+  #screen-vis .envase-shell {
+    background-color: #e9ddc9 !important;
+  }
+
+  #screen-chofer .app-content,
+  #screen-vis .app-content {
+    background: transparent !important;
+  }
+
+  #screen-chofer .vis-tabs,
+  #screen-vis .vis-tabs {
+    background-color: #e9ddc9 !important;
+    border-bottom: 1px solid #d6c4a8;
+  }
+}
