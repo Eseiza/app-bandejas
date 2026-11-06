@@ -185,6 +185,9 @@ function detachAll() {
 ══════════════════════════════════════ */
 document.getElementById('login-role').addEventListener('change', (e) => {
   state.role = e.target.value || null;
+  const body = document.getElementById('login-form-body');
+  body.classList.toggle('visible', !!state.role);
+  if (state.role) setTimeout(() => document.getElementById('login-user').focus(), 220);
 });
 
 ['login-user', 'login-pass'].forEach(id => {
@@ -1181,6 +1184,7 @@ window.doLogout = function() {
   document.getElementById('login-user').value = '';
   document.getElementById('login-pass').value = '';
   document.getElementById('login-role').value = '';
+  document.getElementById('login-form-body').classList.remove('visible');
 };
 
 /* ══════════════════════════════════════
