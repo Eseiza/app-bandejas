@@ -2,24 +2,24 @@
    ROMERO PANIFICADOS — styles.css
 ══════════════════════════════════════ */
 
-:root {
-  --bg:        #1a1208;
-  --surface:   #241a0a;
-  --surface2:  #2e2010;
-  --border:    #3d2e14;
-  --accent:    #c8860a;
-  --accent2:   #e8452c;
-  --green:     #5a9e4a;
-  --text:      #f5ede0;
-  --muted:     #8a7055;
-  --font-head: 'Bebas Neue', sans-serif;
-  --font-mono: 'DM Mono', monospace;
-  --font-body: 'DM Sans', sans-serif;
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,600;1,400&family=Nunito:wght@400;600;700&display=swap');
 
-  /* radios reutilizables */
+:root {
+  --bg: #2a1a0a;
+  --surface: rgba(255,255,255,0.98);
+  --surface2: #fdf6ec;
+  --border: #e8dcc8;
+  --accent: #c8960c;
+  --accent2: #b13009;
+  --green: #477a42;
+  --text: #2a1a0a;
+  --muted: #6b4c2a;
+  --font-head: 'Lora', serif;
+  --font-mono: 'Nunito', sans-serif;
+  --font-body: 'Nunito', sans-serif;
   --r-sm: 8px;
   --r-md: 12px;
-  --r-lg: 16px;
+  --r-lg: 20px;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -66,7 +66,8 @@ body {
   box-shadow: 0 24px 60px rgba(0,0,0,.45), 0 0 40px rgba(200,134,10,.06);
 }
 
-.login-brand { display: flex; align-items: center; gap: 12px; margin-bottom: 4px; }
+.login-brand { display: flex; align-items: center; justify-content: flex-start; margin-bottom: 10px; }
+.login-logo { display: block; width: 100%; max-width: 220px; height: auto; object-fit: contain; }
 
 .login-title {
   font-family: var(--font-head);
@@ -289,7 +290,7 @@ header {
 }
 
 .logo { display: flex; align-items: center; gap: 8px; }
-.logo-icon { font-size: 22px; }
+.logo-img { display: block; height: 30px; width: auto; max-width: 180px; object-fit: contain; }
 
 .logo-text {
   font-family: var(--font-head);
@@ -569,13 +570,23 @@ header {
   font-size: 12px;
   letter-spacing: 1px;
   color: var(--muted);
+  background: var(--surface2);
   cursor: pointer;
+  border: 1px solid var(--border);
   border-bottom: 3px solid transparent;
-  transition: all .2s;
+  border-radius: 12px 12px 0 0;
+  transition: background .2s, color .2s, border-color .2s;
   touch-action: manipulation;
 }
 
-.vis-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.vis-tab:hover,
+.vis-tab.active {
+  background: #f5ead8;
+  color: var(--text);
+  border-bottom-color: var(--accent);
+}
+
+.vis-tab.active { font-weight: 700; }
 .vis-tab-content { display: none; }
 .vis-tab-content.active { display: block; }
 
@@ -767,7 +778,7 @@ header {
 
   .logo-text   { font-size: 24px; }
   .logo-sub    { font-size: 9px; }
-  .logo-icon   { font-size: 26px; }
+  .logo-img    { height: 36px; max-width: 220px; }
 
   .vis-tabs {
     top: 60px;
@@ -926,4 +937,1037 @@ header {
 .btn-expandir:hover {
   border-color: var(--accent);
   color: var(--accent);
+}
+
+/* ============================================================
+   ROMERO / ENVASE DESIGN SYSTEM — APLICADO A TODA BANDEJAS
+   Paleta, tipografías, superficies, bordes y componentes.
+============================================================ */
+* { box-sizing: border-box; }
+html { min-height: 100%; }
+body {
+  min-height: 100vh;
+  background: #2a1a0a;
+  background-image: repeating-linear-gradient(-45deg, transparent, transparent 60px,
+    rgba(200,150,12,.025) 60px, rgba(200,150,12,.025) 61px);
+  color: #2a1a0a;
+  font-family: 'Nunito', sans-serif;
+}
+::-webkit-scrollbar-track { background: #2a1a0a; }
+::-webkit-scrollbar-thumb { background: #8b6a35; border-radius: 8px; }
+
+/* LOGIN — misma estructura y proporciones de Envase */
+#screen-login {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  width: 100%;
+  padding: 20px;
+  overflow: hidden;
+  background: transparent;
+}
+#screen-login .bg-gradient {
+  position: fixed; inset: 0; z-index: 0;
+  background: linear-gradient(135deg,#2a1a0a 0%,#3d2408 40%,#1a0d04 70%,#2a1a0a 100%);
+  animation: envaseBgShift 12s ease-in-out infinite alternate;
+}
+@keyframes envaseBgShift { from { opacity:.88; } to { opacity:1; } }
+#screen-login .bg-lines {
+  position: fixed; inset: 0; z-index: 0;
+  background-image: repeating-linear-gradient(-45deg,transparent,transparent 60px,
+    rgba(200,150,12,.025) 60px,rgba(200,150,12,.025) 61px);
+}
+.login-container {
+  position: relative; z-index: 1;
+  width: 100%; max-width: 420px;
+  padding: 40px;
+  text-align: center;
+  background: rgba(255,255,255,.98);
+  border: 0; border-top: 4px solid #c8960c;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.4),0 0 0 1px rgba(200,150,12,.2);
+  animation: envaseSlideUp .6s cubic-bezier(.16,1,.3,1) both;
+}
+@keyframes envaseSlideUp { from {opacity:0;transform:translateY(40px) scale(.97)} to {opacity:1;transform:translateY(0) scale(1)} }
+.header-icon { display:block; width:auto; max-width:180px; max-height:80px; object-fit:contain; margin:0 auto 16px; }
+.divider { border:0; border-top:1px solid #e8b84b; margin:0 0 24px; }
+.roles-label, .login-container label {
+  display:block; margin:0 0 10px; text-align:left;
+  color:#6b4c2a; font-family:'Nunito',sans-serif;
+  font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase;
+}
+#login-role, .login-container input {
+  width:100%; padding:11px 14px; margin:0 0 20px;
+  border:1.5px solid #e0d0b0; border-radius:8px;
+  background-color:#fdf6ec; color:#2a1a0a;
+  font-family:'Nunito',sans-serif; font-size:15px;
+  transition:border-color .2s,box-shadow .2s;
+}
+#login-role {
+  appearance:none; -webkit-appearance:none; cursor:pointer;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23c8960c' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat; background-position:right 14px center;
+  padding-right:36px;
+}
+#login-role:focus, .login-container input:focus {
+  outline:none; border-color:#c8960c; box-shadow:0 0 0 3px rgba(200,150,12,.15);
+}
+#login-role option { background:#fdf6ec; color:#2a1a0a; }
+.form-body {
+  overflow:hidden; max-height:0; opacity:0;
+  transition:max-height .5s cubic-bezier(.16,1,.3,1),opacity .4s ease;
+  text-align:left;
+}
+.form-body.visible { max-height:260px; opacity:1; }
+.form-group { margin-bottom:16px; }
+.form-group label { margin-bottom:6px; }
+.login-container input { margin:0; }
+#login-btn {
+  display:block; width:100%; padding:13px; margin-top:4px;
+  background:#fdf6ec; color:#b13009; border:2px solid #b13009;
+  border-radius:10px; cursor:pointer;
+  font-family:'Lora',serif; font-size:15px; font-weight:700; letter-spacing:.3px;
+  transition:background .2s,color .2s,transform .15s,box-shadow .2s;
+}
+#login-btn:hover { background:#b13009; color:#fdf6ec; transform:translateY(-1px); box-shadow:0 4px 14px rgba(177,48,9,.3); }
+#login-btn:active { transform:translateY(0); }
+
+/* CABECERA de las pantallas internas */
+header {
+  min-height:64px; height:auto; padding:10px 24px;
+  background:rgba(255,255,255,.98);
+  border-bottom:3px solid #c8960c;
+  box-shadow:0 2px 10px rgba(42,26,10,.08);
+}
+.logo-img { height:40px; max-width:190px; }
+.logo-sub { color:#6b4c2a; font-family:'Nunito',sans-serif; font-size:9px; letter-spacing:1px; }
+.hbadge { color:#6b4c2a; font-family:'Nunito',sans-serif; font-size:12px; }
+.role-tag { border-radius:20px; font-family:'Nunito',sans-serif; letter-spacing:.5px; }
+.role-tag.chofer { background:#c8960c; color:#fff; }
+.role-tag.vis { background:#f5f0e8; color:#6b4c2a; border:1px solid #e8dcc8; }
+.btn-logout {
+  padding:8px 14px; border:1.5px solid #b13009; border-radius:10px;
+  background:#fdf6ec; color:#b13009; font-family:'Lora',serif;
+  font-size:13px; font-weight:600; letter-spacing:0;
+}
+.btn-logout:hover,.btn-logout:active { background:#b13009; color:#fff; border-color:#b13009; }
+
+/* Contenido / títulos */
+.app-content { color:#2a1a0a; }
+.section-title {
+  color:#2a1a0a; font-family:'Lora',serif;
+  font-size:25px; font-weight:600; letter-spacing:0; text-transform:none;
+}
+.section-header { border-bottom:1px solid rgba(232,220,200,.55); padding-bottom:8px; }
+.back-bar { border-bottom:1px solid rgba(232,220,200,.55); }
+.btn-back { color:#b13009; font-family:'Lora',serif; }
+.text-accent { color:#b78300; }
+.text-muted { color:#6b4c2a; }
+.text-mono { font-family:'Nunito',sans-serif; }
+
+/* Tarjetas principales y KPI con el mismo blanco cálido de Envase */
+.card,.kpi,.modal {
+  background:rgba(255,255,255,.98); color:#2a1a0a;
+  border:1px solid #e8dcc8; border-radius:14px;
+  box-shadow:0 2px 10px rgba(42,26,10,.06);
+}
+.card { padding:20px 18px; margin-bottom:14px; }
+.card-title {
+  color:#6b4c2a; font-family:'Lora',serif;
+  font-size:17px; font-weight:600; letter-spacing:0;
+  text-transform:none; margin-bottom:16px;
+}
+.kpi { padding:18px 16px; border-radius:14px; }
+.kpi::before { height:3px; background:#c8960c; }
+.kpi.green::before { background:#477a42; }
+.kpi.red::before { background:#b13009; }
+.kpi-val { color:#2a1a0a; font-family:'Lora',serif; font-size:38px; }
+.kpi-label { color:#6b4c2a; font-family:'Nunito',sans-serif; font-size:10px; letter-spacing:1px; }
+
+/* Botones: dorado principal y rojo para acciones destructivas */
+.btn {
+  background:#c8960c; color:#fff; border:1.5px solid #c8960c;
+  border-radius:10px; font-family:'Lora',serif;
+  font-size:16px; font-weight:700; letter-spacing:.4px;
+  box-shadow:0 2px 6px rgba(42,26,10,.08);
+}
+.btn:hover { background:#b78300; border-color:#b78300; }
+.btn:active { background:#a97700; transform:translateY(0); }
+.btn-big { padding:20px; font-size:22px; letter-spacing:1px; }
+.btn-green { background:#477a42; border-color:#477a42; }
+.btn-green:hover,.btn-green:active { background:#386735; border-color:#386735; }
+.btn-danger { background:#b13009; border-color:#b13009; }
+.btn-outline,.btn-editar,.btn-quitar,.btn-expandir {
+  border-color:#e0d0b0; color:#6b4c2a; border-radius:8px;
+}
+.btn-outline:hover,.btn-editar:hover,.btn-expandir:hover { border-color:#c8960c; color:#7a1a0a; background:#fdf6ec; }
+
+/* Campos, filtros y desplegables */
+input,select,.dd-trigger,#dd-search,.cl-input {
+  background:#fdf6ec; border:1.5px solid #e0d0b0;
+  color:#2a1a0a; border-radius:8px; font-family:'Nunito',sans-serif;
+}
+input::placeholder { color:#bba88a; }
+input:focus,select:focus,.dd-trigger:focus,#dd-search:focus,.cl-input:focus {
+  outline:none; border-color:#c8960c; box-shadow:0 0 0 3px rgba(200,150,12,.12);
+}
+select option { background:#fdf6ec; color:#2a1a0a; }
+label { color:#6b4c2a; font-family:'Nunito',sans-serif; font-size:11px; font-weight:700; letter-spacing:.8px; }
+#cliente-dropdown { background:#fff; border:1px solid #e8dcc8 !important; box-shadow:0 12px 28px rgba(42,26,10,.16); }
+.dd-item { color:#2a1a0a; border-color:#e8dcc8; }
+.dd-item:hover,.dd-item:active { background:#fdf6ec; color:#7a1a0a; }
+
+/* Navegación, tablas y listas */
+.vis-tabs { background:#f5f0e8; border-bottom:1px solid #e8dcc8; top:64px; }
+.vis-tab {
+  color:#6b4c2a; font-family:'Nunito',sans-serif;
+  font-size:12px; font-weight:700; letter-spacing:.5px;
+  border-bottom:3px solid transparent;
+}
+.vis-tab.active { color:#7a1a0a; border-bottom-color:#c8960c; }
+.tbl th {
+  color:#6b4c2a; background:#f5f0e8;
+  font-family:'Nunito',sans-serif; font-size:10px; letter-spacing:.8px;
+  border-color:#e8dcc8;
+}
+.tbl td { color:#2a1a0a; border-color:#e8dcc8; }
+.tbl tbody tr:hover { background:#fdf6ec; }
+.cl-row,.deuda-row { border-color:#e8dcc8; color:#2a1a0a; }
+.deuda-num { font-family:'Lora',serif; }
+.deuda-num.danger { color:#b13009; }
+.deuda-num.ok { color:#477a42; }
+.deuda-num.warn { color:#c8960c; }
+
+/* Modales y avisos */
+.modal-overlay { background:rgba(26,13,4,.72); backdrop-filter:blur(3px); }
+.modal { border-top:4px solid #c8960c; padding:30px 26px; }
+.modal-title { color:#7a1a0a; font-family:'Lora',serif; font-size:24px; letter-spacing:0; }
+.modal-cliente { color:#2a1a0a; }
+.toast { font-family:'Nunito',sans-serif; letter-spacing:.2px; border-radius:10px; }
+.badge { border-radius:20px; }
+.badge.ok { background:#edf5e9; color:#477a42; border-color:#b8d2ad; }
+.badge.pend { background:#fff5d9; color:#9a7000; border-color:#e8c96a; }
+
+@media (min-width:640px) {
+  .app-content { padding:30px 32px 80px; }
+  .kpi { padding:20px 18px; }
+}
+@media (min-width:900px) {
+  header { padding:10px 32px; min-height:70px; }
+  .logo-img { height:44px; }
+  .vis-tabs { top:70px; }
+  .app-content { max-width:1060px; padding:32px 40px 80px; }
+  .card { padding:22px 20px; margin-bottom:16px; }
+  .kpi-row { gap:12px; }
+  #tab-graficos .charts-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+}
+@media (max-width:600px) {
+  .login-container { padding:30px 24px; }
+  .header-icon { max-width:160px; }
+  header { padding:8px 12px; min-height:58px; }
+  .logo-img { height:32px; max-width:145px; }
+  .hbadge { gap:5px; font-size:10px; }
+  .btn-logout { padding:6px 9px; font-size:11px; }
+  .vis-tabs { top:58px; }
+  .app-content { padding:20px 12px 80px; }
+  .section-title { font-size:22px; }
+  .card { padding:16px 14px; }
+  .kpi { padding:13px 10px; }
+  .kpi-val { font-size:30px; }
+  .kpi-label { font-size:9px; }
+}
+@media (max-width:380px) {
+  .login-container { padding:26px 18px; }
+  .hbadge > span:first-child { display:none; }
+  .kpi-row { gap:6px; }
+}
+
+
+/* ==========================================================
+   BANDEJAS — ESTRUCTURA DE PÁGINAS BASADA EN ENVASE
+   No modifica el login ni la lógica de la aplicación.
+========================================================== */
+:root {
+  --bg: #2a1a0a;
+  --surface: rgba(255,255,255,.98);
+  --surface2: #fdf6ec;
+  --border: #e8dcc8;
+  --accent: #c8960c;
+  --accent2: #b13009;
+  --green: #477a42;
+  --text: #2a1a0a;
+  --muted: #6b4c2a;
+}
+
+body:not(:has(#screen-login[style*="display: flex"])) {
+  background: #2a1a0a;
+  background-image: repeating-linear-gradient(-45deg, transparent, transparent 60px, rgba(200,150,12,.025) 60px, rgba(200,150,12,.025) 61px);
+  background-attachment: fixed;
+}
+
+/* Marco blanco con borde dorado superior, como los módulos internos de Envase */
+#screen-chofer, #screen-vis {
+  display: flex;
+  align-items: flex-start;
+  width: 100%;
+  min-height: 100vh;
+  padding: 24px 18px;
+  background: transparent;
+}
+.envase-shell {
+  width: min(100%, 1180px);
+  min-height: calc(100vh - 48px);
+  margin: 0 auto;
+  background: rgba(255,255,255,.98);
+  border-radius: 20px;
+  border-top: 4px solid #c8960c;
+  box-shadow: 0 20px 60px rgba(0,0,0,.4);
+  overflow: hidden;
+  animation: envasePanelIn .45s cubic-bezier(.16,1,.3,1) both;
+}
+@keyframes envasePanelIn {
+  from { opacity: 0; transform: translateY(22px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Header de módulo como Envase: banda crema, logo a la izquierda, usuario a la derecha */
+.envase-shell > header {
+  position: relative;
+  top: auto;
+  z-index: 5;
+  height: auto;
+  min-height: 76px;
+  padding: 14px 28px;
+  background: #f5f0e8;
+  border-bottom: 1px solid #e8dcc8;
+  border-top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+.logo-img { height: 42px; max-width: 190px; }
+.logo-sub {
+  color: #6b4c2a;
+  font-family: 'Nunito',sans-serif;
+  font-size: 9px;
+  letter-spacing: .8px;
+}
+.hbadge { gap: 10px; color: #6b4c2a; font-size: 12px; }
+.role-tag {
+  border-radius: 999px;
+  padding: 5px 12px;
+  background: #c8960c !important;
+  color: #fff !important;
+  border: 0 !important;
+  font-size: 10px;
+}
+.btn-logout {
+  padding: 9px 18px;
+  border: 2px solid #b13009;
+  border-radius: 10px;
+  background: #fdf6ec;
+  color: #b13009;
+  font-family: 'Lora',serif;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+.btn-logout:hover, .btn-logout:active { background: #b13009; color: #fdf6ec; }
+
+/* Navegación visualizadora integrada en la cabecera del panel, sin sticky/nav flotante */
+.vis-tabs {
+  position: relative;
+  top: auto;
+  z-index: 2;
+  display: flex;
+  gap: 6px;
+  padding: 12px 28px 0;
+  background: #fff;
+  border-bottom: 1px solid #e8dcc8;
+}
+.vis-tab {
+  flex: 0 0 auto;
+  min-width: 130px;
+  padding: 12px 18px;
+  border: 1px solid #e8dcc8;
+  border-bottom: 0;
+  border-radius: 9px 9px 0 0;
+  background: #f5f0e8;
+  color: #6b4c2a;
+  font-family: 'Nunito',sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .3px;
+}
+.vis-tab.active {
+  background: #fdf6ec;
+  color: #7a1a0a;
+  border-color: #c8960c;
+  box-shadow: inset 0 3px 0 #c8960c;
+}
+
+/* Contenido ancho: no más columna angosta de 600/860px */
+.app-content {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 28px 32px 40px;
+}
+.section-title {
+  margin: 0 0 20px;
+  color: #2a1a0a;
+  font-family: 'Lora',serif;
+  font-size: 23px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.back-bar {
+  padding: 0 0 14px;
+  border-bottom: 1px solid #e8dcc8;
+  margin-bottom: 22px;
+}
+.btn-back {
+  padding: 9px 18px;
+  border: 2px solid #b13009;
+  border-radius: 10px;
+  background: #fdf6ec;
+  color: #b13009;
+  font-family: 'Lora',serif;
+  font-weight: 600;
+}
+
+/* KPIs en tarjetas blancas como el inicio de Envase */
+.kpi-row { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 14px; margin-bottom: 24px; }
+.kpi {
+  min-height: 116px;
+  padding: 20px 22px;
+  border: 1px solid #e8dcc8;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(42,26,10,.04);
+}
+.kpi::before { height: 3px; background: #c8960c; }
+.kpi.green::before { background: #477a42; }
+.kpi.red::before { background: #b13009; }
+.kpi-val { color: #2a1a0a; font-family: 'Lora',serif; font-size: 42px; }
+.kpi-label { color: #6b4c2a; font-family: 'Nunito',sans-serif; font-size: 11px; letter-spacing: .8px; }
+
+/* Paneles crema con el mismo lenguaje de formularios de Envase */
+.card {
+  margin-bottom: 18px;
+  padding: 22px;
+  border: 1px solid #e8dcc8;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(42,26,10,.035);
+}
+.card-title {
+  margin-bottom: 16px;
+  color: #6b4c2a;
+  font-family: 'Lora',serif;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.field { margin-bottom: 16px; }
+label {
+  color: #6b4c2a;
+  font-family: 'Nunito',sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .7px;
+}
+input, select, .dd-trigger, .cl-input {
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1.5px solid #e0d0b0;
+  border-radius: 8px;
+  background-color: #fdf6ec;
+  color: #2a1a0a;
+  font-family: 'Nunito',sans-serif;
+  font-size: 14px;
+}
+select option { background: #fdf6ec; color: #2a1a0a; }
+input:focus, select:focus, .cl-input:focus, .dd-trigger:focus {
+  border-color: #c8960c;
+  box-shadow: 0 0 0 3px rgba(200,150,12,.15);
+}
+
+/* Botones principales al estilo Envase */
+.btn {
+  min-height: 46px;
+  padding: 12px 20px;
+  border: 2px solid #b13009;
+  border-radius: 10px;
+  background: #fdf6ec;
+  color: #b13009;
+  font-family: 'Lora',serif;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0;
+  box-shadow: none;
+}
+.btn:hover { background: #b13009; color: #fdf6ec; }
+.btn:active { transform: translateY(0); }
+.btn-big {
+  width: 100%;
+  min-height: 72px;
+  margin-top: 4px;
+  border: 0;
+  border-radius: 10px;
+  background: #c8960c;
+  color: #fff;
+  font-family: 'Lora',serif;
+  font-size: 23px;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+.btn-big:hover { background: #b18108; color: #fff; }
+.btn-green { background: #fdf6ec; color: #477a42; border-color: #477a42; }
+.btn-green:hover { background: #477a42; color: #fff; }
+.btn-danger { background: #b13009; color: #fff; border-color: #b13009; }
+.btn-danger:hover { background: #7a1a0a; color: #fff; }
+.btn-outline, .btn-editar, .btn-eliminar, .btn-quitar, .btn-expandir {
+  border-radius: 8px;
+  font-family: 'Nunito',sans-serif;
+  letter-spacing: 0;
+}
+
+/* Tablas y listas dentro de tarjetas claras */
+.tbl th {
+  background: #f5f0e8;
+  color: #6b4c2a;
+  border-bottom: 1px solid #e8dcc8;
+  font-family: 'Nunito',sans-serif;
+  font-size: 10px;
+  letter-spacing: .6px;
+}
+.tbl td { color: #2a1a0a; border-bottom: 1px solid #eee4d5; }
+.cl-row, .deuda-row { background: #fff; border-color: #e8dcc8; }
+.cl-row.done { background: #f5f0e8; }
+.cl-name, .deuda-nombre { color: #2a1a0a; }
+.deuda-num { color: #7a1a0a; }
+.empty-msg { color: #6b4c2a; font-family: 'Nunito',sans-serif; }
+
+/* Gráficos y tablas con más espacio en escritorio */
+.charts-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 18px; }
+.charts-grid .card { min-width: 0; }
+#tab-graficos .card { overflow: hidden; }
+.tbl-wrap { border-radius: 0 0 10px 10px; }
+
+@media (max-width: 760px) {
+  #screen-chofer, #screen-vis { padding: 0; }
+  .envase-shell { width: 100%; min-height: 100vh; border-radius: 0; }
+  .envase-shell > header { padding: 12px 16px; min-height: 68px; }
+  .logo-img { height: 34px; max-width: 145px; }
+  .hbadge { gap: 6px; font-size: 10px; }
+  .role-tag { padding: 4px 8px; font-size: 9px; }
+  .btn-logout { padding: 7px 10px; font-size: 12px; }
+  .app-content { padding: 22px 16px 32px; }
+  .section-title { font-size: 20px; }
+  .vis-tabs { padding: 10px 12px 0; gap: 4px; }
+  .vis-tab { min-width: 0; flex: 1; padding: 11px 5px; font-size: 11px; }
+  .kpi-row { gap: 8px; }
+  .kpi { min-height: 92px; padding: 14px 12px; }
+  .kpi-val { font-size: 32px; }
+  .kpi-label { font-size: 9px; }
+  .card { padding: 16px 14px; }
+  .charts-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 420px) {
+  .hbadge #chofer-nombre, .hbadge #vis-nombre { display: none; }
+  .kpi-row { grid-template-columns: repeat(3,minmax(0,1fr)); }
+  .kpi-val { font-size: 27px; }
+  .filtros-grid { grid-template-columns: 1fr 1fr; }
+  .add-cliente-row { flex-direction: column; }
+  .add-cliente-row > button { width: 100%; }
+}
+
+
+/* ==========================================================
+   BOTONES — ESTADO NORMAL RELLENO / HOVER Y PRESS EN CONTORNO
+   El color institucional está presente desde el inicio.
+========================================================== */
+.btn,
+.btn-green,
+.btn-danger,
+.btn-big,
+.btn-logout,
+.btn-outline,
+.btn-editar,
+.btn-eliminar,
+.btn-quitar,
+.btn-expandir {
+  transition:
+    background-color .18s ease,
+    color .18s ease,
+    border-color .18s ease,
+    box-shadow .18s ease,
+    transform .12s ease;
+}
+
+/* Primario: dorado sólido en reposo; al interactuar queda solo el borde */
+.btn {
+  background: #c8960c;
+  color: #fff;
+  border: 2px solid #c8960c;
+}
+.btn:hover,
+.btn:focus-visible,
+.btn:active {
+  background: #fdf6ec;
+  color: #9b7000;
+  border-color: #c8960c;
+  box-shadow: 0 0 0 2px rgba(200,150,12,.10);
+}
+.btn:active { transform: translateY(1px); }
+
+/* Acción verde */
+.btn-green {
+  background: #477a42;
+  color: #fff;
+  border: 2px solid #477a42;
+}
+.btn-green:hover,
+.btn-green:focus-visible,
+.btn-green:active {
+  background: #fdf6ec;
+  color: #477a42;
+  border-color: #477a42;
+}
+
+/* Acción de cierre / peligrosa */
+.btn-danger {
+  background: #b13009;
+  color: #fff;
+  border: 2px solid #b13009;
+}
+.btn-danger:hover,
+.btn-danger:focus-visible,
+.btn-danger:active {
+  background: #fdf6ec;
+  color: #b13009;
+  border-color: #b13009;
+}
+
+/* CTA grande */
+.btn-big {
+  background: #c8960c;
+  color: #fff;
+  border: 2px solid #c8960c;
+}
+.btn-big:hover,
+.btn-big:focus-visible,
+.btn-big:active {
+  background: #fdf6ec;
+  color: #9b7000;
+  border-color: #c8960c;
+}
+
+/* Botones de sesión: sólidos en reposo, contorno al interactuar */
+.btn-logout {
+  background: #b13009;
+  color: #fff;
+  border: 2px solid #b13009;
+  font-family: 'Lora',serif;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0;
+  border-radius: 10px;
+  padding: 9px 18px;
+}
+.btn-logout:hover,
+.btn-logout:focus-visible,
+.btn-logout:active {
+  background: #fdf6ec;
+  color: #b13009;
+  border-color: #b13009;
+}
+#screen-chofer .hbadge .btn-logout::first-letter { font-size: 16px; }
+
+/* Secundarios también quedan rellenos suavemente; el hover resalta solo el borde */
+.btn-outline {
+  background: #fdf6ec;
+  color: #b13009;
+  border: 2px solid #b13009;
+}
+.btn-outline:hover,
+.btn-outline:focus-visible,
+.btn-outline:active {
+  background: #fff;
+  color: #b13009;
+  border-color: #b13009;
+}
+.btn-editar {
+  background: #c8960c;
+  color: #fff;
+  border: 1.5px solid #c8960c;
+}
+.btn-editar:hover,
+.btn-editar:focus-visible,
+.btn-editar:active {
+  background: #fdf6ec;
+  color: #9b7000;
+  border-color: #c8960c;
+}
+.btn-eliminar {
+  background: #b13009;
+  color: #fff;
+  border: 1.5px solid #b13009;
+}
+.btn-eliminar:hover,
+.btn-eliminar:focus-visible,
+.btn-eliminar:active {
+  background: #fdf6ec;
+  color: #b13009;
+  border-color: #b13009;
+}
+.btn-quitar {
+  background: #fdf6ec;
+  color: #b13009;
+  border: 1.5px solid #e8dcc8;
+}
+.btn-quitar:hover,
+.btn-quitar:focus-visible,
+.btn-quitar:active {
+  background: #fff;
+  color: #b13009;
+  border-color: #b13009;
+}
+.btn-expandir {
+  background: #c8960c;
+  color: #fff;
+  border: 1.5px solid #c8960c;
+}
+.btn-expandir:hover,
+.btn-expandir:focus-visible,
+.btn-expandir:active {
+  background: #fdf6ec;
+  color: #9b7000;
+  border-color: #c8960c;
+}
+
+button:disabled,
+.btn:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+
+/* ==========================================================
+   CONTRASTE DE LECTURA — PANTALLA DE CHOFER
+   Tonos más profundos para textos, campos y estados.
+   El login conserva exactamente su apariencia.
+========================================================== */
+#screen-chofer .viaje-info .text-accent {
+  color: #805600 !important;
+  font-weight: 700;
+}
+#screen-chofer .viaje-info .text-muted,
+#screen-chofer .viaje-info {
+  color: #5b4028;
+}
+#screen-chofer .card-title,
+#screen-chofer .cl-input-label,
+#screen-chofer label {
+  color: #5c3e24 !important;
+}
+#screen-chofer .cl-input,
+#screen-chofer input,
+#screen-chofer .dd-trigger {
+  background: #f3e7d6;
+  color: #382719;
+  border-color: #d7bd96;
+}
+#screen-chofer .cl-input::placeholder,
+#screen-chofer input::placeholder,
+#screen-chofer .dd-trigger::placeholder {
+  color: #755b40;
+  opacity: 1;
+}
+#screen-chofer .cl-input:focus,
+#screen-chofer input:focus,
+#screen-chofer .dd-trigger:focus {
+  background: #fffaf3;
+  border-color: #a87800;
+  box-shadow: 0 0 0 3px rgba(168,120,0,.14);
+}
+#screen-chofer .badge.pend {
+  background: #f3dfb0;
+  color: #684600;
+  border-color: #bd8b24;
+  font-weight: 700;
+}
+#screen-chofer .badge.ok {
+  background: #dcebd5;
+  color: #28572a;
+  border-color: #65945c;
+  font-weight: 700;
+}
+#screen-chofer .btn-green {
+  background: #356b35;
+  border-color: #356b35;
+  color: #fff;
+}
+#screen-chofer .btn-green:hover,
+#screen-chofer .btn-green:focus-visible,
+#screen-chofer .btn-green:active {
+  background: #fffaf3;
+  color: #28572a;
+  border-color: #356b35;
+}
+
+
+/* ==========================================================
+   CONTRASTE GENERAL DE TODAS LAS PANTALLAS INTERNAS
+   Se excluye deliberadamente el login, que queda sin cambios.
+========================================================== */
+#screen-chofer,
+#screen-vis {
+  --text: #382719;
+  --muted: #654a31;
+  --border: #d8c19d;
+  --surface: #fffdf9;
+  --surface2: #f3e7d6;
+  --accent: #956800;
+  --accent2: #a52d0b;
+  --green: #356b35;
+  color: #382719;
+}
+
+/* Textos secundarios, títulos y etiquetas */
+#screen-chofer .text-muted,
+#screen-vis .text-muted,
+#screen-chofer .card-title,
+#screen-vis .card-title,
+#screen-chofer label,
+#screen-vis label,
+#screen-chofer .kpi-label,
+#screen-vis .kpi-label,
+#screen-chofer .tbl th,
+#screen-vis .tbl th,
+#screen-chofer .cl-input-label,
+#screen-vis .cl-input-label {
+  color: #654a31 !important;
+}
+
+/* Campos y selectores: mayor contraste entre superficie y texto */
+#screen-chofer input,
+#screen-chofer select,
+#screen-vis input,
+#screen-vis select,
+#screen-chofer .cl-input,
+#screen-vis .cl-input,
+#screen-chofer .dd-trigger,
+#screen-vis .dd-trigger,
+#screen-chofer #dd-search,
+#screen-vis #dd-search {
+  background-color: #f3e7d6;
+  color: #382719;
+  border-color: #d1b78d;
+}
+#screen-chofer input::placeholder,
+#screen-vis input::placeholder,
+#screen-chofer .cl-input::placeholder,
+#screen-vis .cl-input::placeholder,
+#screen-chofer .dd-trigger,
+#screen-vis .dd-trigger {
+  color: #755b40;
+  opacity: 1;
+}
+#screen-chofer input:focus,
+#screen-chofer select:focus,
+#screen-vis input:focus,
+#screen-vis select:focus,
+#screen-chofer .cl-input:focus,
+#screen-vis .cl-input:focus,
+#screen-chofer .dd-trigger:focus,
+#screen-vis .dd-trigger:focus {
+  background-color: #fffaf3;
+  border-color: #956800;
+  box-shadow: 0 0 0 3px rgba(149,104,0,.15);
+}
+
+/* Tarjetas, tablas y filas */
+#screen-chofer .card,
+#screen-vis .card,
+#screen-chofer .kpi,
+#screen-vis .kpi,
+#screen-vis .tbl-wrap,
+#screen-vis .deuda-row,
+#screen-chofer .deuda-row {
+  color: #382719;
+}
+#screen-chofer .tbl td,
+#screen-vis .tbl td,
+#screen-chofer .deuda-nombre,
+#screen-vis .deuda-nombre,
+#screen-chofer .kpi-val,
+#screen-vis .kpi-val {
+  color: #382719;
+}
+#screen-chofer .vis-tab,
+#screen-vis .vis-tab {
+  color: #654a31;
+}
+#screen-chofer .vis-tab.active,
+#screen-vis .vis-tab.active {
+  color: #805600;
+  border-bottom-color: #956800;
+}
+
+/* Estados legibles */
+#screen-chofer .badge.pend,
+#screen-vis .badge.pend {
+  background: #f3dfb0;
+  color: #684600;
+  border-color: #bd8b24;
+  font-weight: 700;
+}
+#screen-chofer .badge.ok,
+#screen-vis .badge.ok {
+  background: #dcebd5;
+  color: #28572a;
+  border-color: #65945c;
+  font-weight: 700;
+}
+#screen-chofer .text-accent,
+#screen-vis .text-accent,
+#screen-chofer .warn,
+#screen-vis .warn {
+  color: #805600 !important;
+}
+#screen-chofer .text-green,
+#screen-vis .text-green,
+#screen-chofer .green,
+#screen-vis .green {
+  color: #28572a !important;
+}
+#screen-chofer .text-red,
+#screen-vis .text-red,
+#screen-chofer .red,
+#screen-vis .red {
+  color: #9d2b0b !important;
+}
+
+/* Menús desplegables: opciones oscuras sobre fondo claro */
+#screen-chofer select option,
+#screen-vis select option,
+#screen-chofer #cliente-dropdown,
+#screen-vis #cliente-dropdown,
+#screen-chofer .dd-item,
+#screen-vis .dd-item {
+  background: #fffaf3;
+  color: #382719;
+}
+#screen-chofer .dd-item:hover,
+#screen-vis .dd-item:hover {
+  background: #f0dfc5;
+}
+
+/* El login conserva sus colores y estados originales. */
+
+/* Acento crema para el encabezado "Resumen de hoy" del inicio de Chofer */
+#screen-chofer #pantalla-inicio > .section-title {
+  background: #f5f0e8;
+  color: #2a1a0a;
+  border: 1px solid #e8dcc8;
+  border-left: 4px solid #c8960c;
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 20px;
+}
+
+
+/* MÓVIL: el marrón del login es el fondo de la pantalla del teléfono.
+   Las tarjetas y formularios siguen claros para conservar la lectura. */
+@media (max-width: 760px) {
+  #screen-chofer .envase-shell,
+  #screen-vis .envase-shell {
+    background-color: #2a1a0a;
+  }
+
+  #screen-chofer .app-content,
+  #screen-vis .app-content {
+    background: transparent;
+  }
+
+  #screen-chofer .vis-tabs,
+  #screen-vis .vis-tabs {
+    background: #f5f0e8;
+  }
+}
+
+
+/* Ícono de salida: puerta con flecha, visible en chofer y visualizador */
+.btn-logout {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  background: #b13009;
+  color: #fff;
+  border: 2px solid #b13009;
+  transition: background .18s ease, color .18s ease, border-color .18s ease;
+}
+.btn-logout .logout-icon {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.btn-logout:hover,
+.btn-logout:focus-visible,
+.btn-logout:active {
+  background: #fdf6ec;
+  color: #b13009;
+  border-color: #b13009;
+}
+@media (max-width: 600px) {
+  .btn-logout { padding: 9px 13px; gap: 6px; }
+  .btn-logout .logout-icon { width: 16px; height: 16px; flex-basis: 16px; }
+}
+
+
+/* Ajuste compacto de acciones para pantallas móviles */
+@media (max-width: 600px) {
+  .btn-logout {
+    min-height: 40px;
+    height: 40px;
+    padding: 0 12px;
+    gap: 6px;
+    font-size: 12px;
+    line-height: 1;
+    border-radius: 11px;
+    white-space: nowrap;
+  }
+  .btn-logout .logout-icon {
+    width: 15px;
+    height: 15px;
+    flex-basis: 15px;
+  }
+}
+@media (max-width: 380px) {
+  .btn-logout {
+    min-height: 38px;
+    height: 38px;
+    padding: 0 9px;
+    gap: 5px;
+    font-size: 11px;
+  }
+  .btn-logout .logout-icon {
+    width: 14px;
+    height: 14px;
+    flex-basis: 14px;
+  }
 }
