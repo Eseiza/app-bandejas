@@ -4,57 +4,52 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Romero Panificados — Bandejas</title>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,600;1,400&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-<!-- LOGIN -->
+<!-- LOGIN — estructura replicada de Envase -->
 <div id="screen-login">
-  <div class="login-box">
-    <div class="login-brand">
-      <span style="font-size:36px">🍞</span>
-      <div>
-        <div class="login-title">ROMERO</div>
-        <div style="font-family:var(--font-head);font-size:18px;letter-spacing:3px;color:var(--text);line-height:1">PANIFICADOS</div>
+  <div class="bg-gradient" aria-hidden="true"></div>
+  <div class="bg-lines" aria-hidden="true"></div>
+  <div class="login-container">
+    <img src="https://www.romeropanificados.com.ar/wp-content/uploads/2023/01/Recurso-8.png"
+         alt="Romero Panificados" class="header-icon">
+    <hr class="divider">
+    <p class="roles-label">Seleccioná tu rol</p>
+    <select id="login-role" aria-label="Seleccioná tu rol">
+      <option value="">-- Seleccioná un rol --</option>
+      <option value="chofer">🚚 Chofer</option>
+      <option value="visualizador">👁️ Visualizador</option>
+    </select>
+    <div class="form-body" id="login-form-body">
+      <div class="form-group">
+        <label for="login-user">Usuario</label>
+        <input type="text" id="login-user" placeholder="Tu usuario" autocomplete="username">
       </div>
+      <div class="form-group">
+        <label for="login-pass">Contraseña</label>
+        <input type="password" id="login-pass" placeholder="••••••" autocomplete="current-password">
+      </div>
+      <button type="button" id="login-btn">Iniciar Sesión</button>
     </div>
-    <div class="login-sub">SISTEMA DE GESTIÓN DE BANDEJAS</div>
-    <div class="login-tagline"><span>TI 2026</span></div>
-    <div class="field">
-      <label>Rol</label>
-      <select id="login-role">
-        <option value="">— Elegí un rol —</option>
-        <option value="chofer">🚚 Chofer</option>
-        <option value="visualizador">👁️ Visualizador</option>
-      </select>
-    </div>
-    <div class="field">
-      <label>Usuario</label>
-      <input type="text" id="login-user" placeholder="Tu usuario">
-    </div>
-    <div class="field">
-      <label>Contraseña</label>
-      <input type="password" id="login-pass" placeholder="••••••">
-    </div>
-    <button class="btn" id="login-btn">INGRESAR</button>
   </div>
 </div>
 
 <!-- SCREEN CHOFER -->
 <div id="screen-chofer" style="display:none;flex-direction:column;min-height:100vh;width:100%">
+  <div class="envase-shell">
   <header>
     <div class="logo">
-      <span class="logo-icon">🍞</span>
       <div>
-        <div class="logo-text">ROMERO <span>PAN.</span></div>
-        <span class="logo-sub">Gestión de Bandejas</span>
+        <img src="https://www.romeropanificados.com.ar/wp-content/uploads/2023/01/Recurso-8.png" alt="Romero Panificados" class="logo-img">
       </div>
     </div>
     <div class="hbadge">
       <span id="chofer-nombre">—</span>
       <span class="role-tag chofer">CHOFER</span>
-      <button class="btn-logout" onclick="doLogout()">SALIR</button>
+      <button class="btn-logout" onclick="doLogout()" aria-label="Cerrar sesión"><svg class="logout-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M13 4h6a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-6M10 8l4 4-4 4M14 12H3" /></svg><span>SALIR</span></button>
     </div>
   </header>
 
@@ -66,7 +61,7 @@
       <div class="kpi"><div class="kpi-val" id="resumen-salen">0</div><div class="kpi-label">Salen</div></div>
       <div class="kpi"><div class="kpi-val" id="resumen-vuelven">0</div><div class="kpi-label">Vuelven</div></div>
     </div>
-    <button class="btn btn-big" id="btn-nuevo-viaje">+ INICIAR NUEVO VIAJE</button>
+    <button class="btn btn-big" id="btn-nuevo-viaje">INICIAR VIAJE</button>
   </div>
 
   <!-- NUEVO VIAJE -->
@@ -96,7 +91,7 @@
   <!-- VIAJE EN CURSO -->
   <div id="pantalla-viaje" class="chofer-screen app-content" style="display:none">
     <div class="back-bar">
-      <button class="btn-back" id="btn-volver-inicio">← Salir</button>
+      <button class="btn-back" id="btn-volver-inicio">← Volver</button>
       <div class="viaje-info">
         <span class="text-accent text-mono" id="viaje-camion">—</span>
         <span class="text-muted text-mono" style="font-size:11px"> · <span id="viaje-chofer">—</span> · <span id="viaje-bandejas">—</span> bandejas</span>
@@ -129,29 +124,29 @@
     </div>
     <button class="btn btn-danger" id="btn-cerrar-viaje">CERRAR VIAJE ✓</button>
   </div>
+  </div><!-- fin envase-shell -->
 </div><!-- fin screen-chofer -->
 
 <!-- SCREEN VISUALIZADOR -->
 <div id="screen-vis" style="display:none;flex-direction:column;min-height:100vh">
+  <div class="envase-shell">
   <header>
     <div class="logo">
-      <span class="logo-icon">🍞</span>
       <div>
-        <div class="logo-text">ROMERO <span>PAN.</span></div>
-        <span class="logo-sub">Gestión de Bandejas</span>
+        <img src="https://www.romeropanificados.com.ar/wp-content/uploads/2023/01/Recurso-8.png" alt="Romero Panificados" class="logo-img">
       </div>
     </div>
     <div class="hbadge">
       <span id="vis-nombre">—</span>
       <span class="role-tag vis">VISUALIZADOR</span>
-      <button class="btn-logout" onclick="doLogout()">SALIR</button>
+      <button class="btn-logout" onclick="doLogout()" aria-label="Cerrar sesión"><svg class="logout-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M13 4h6a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-6M10 8l4 4-4 4M14 12H3" /></svg><span>SALIR</span></button>
     </div>
   </header>
 
   <div class="vis-tabs">
-    <div class="vis-tab active" data-tab="registros">📋 Registros</div>
-    <div class="vis-tab" data-tab="deudas">📦 Deudas</div>
-    <div class="vis-tab" data-tab="graficos">📊 Gráficos</div>
+    <div class="vis-tab active" data-tab="registros">Registros</div>
+    <div class="vis-tab" data-tab="deudas">Deudas</div>
+    <div class="vis-tab" data-tab="graficos">Gráficos</div>
   </div>
 
   <!-- TAB: REGISTROS -->
@@ -294,6 +289,7 @@
     </div>
   </div><!-- fin tab-graficos -->
 
+  </div><!-- fin envase-shell -->
 </div><!-- fin screen-vis -->
 
 <!-- MODAL EDITAR DEUDA -->
