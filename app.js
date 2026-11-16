@@ -34,6 +34,8 @@ const USERS = {
   "Admin":   { password: "cin>>Eszenay7;",  role: "visualizador", nombre: "TI" },
 };
 
+const OTROS = "__otros__";
+
 /* ── CAMIONES ── */
 const CAMIONES = [
   "Mercedes Benz ATEGO 1418 · KSB 077",
@@ -53,7 +55,8 @@ const CHOFERES = [
   "NAHUEL DOMINGUEZ",
   "ARIEL SOSA",
   "VILLAVERDE MAURO",
-  "FERNANDEZ MAURO"
+  "FERNANDEZ MAURO",
+  "GARCIA LUCAS"
 ];
 
 /* ── CLIENTES ── */
@@ -285,19 +288,37 @@ document.getElementById('btn-nuevo-viaje').addEventListener('click', () => {
   const selCam = document.getElementById('nv-camion');
   selCam.innerHTML = '<option value="">— Seleccioná un camión —</option>';
   CAMIONES.forEach(c => { const o = document.createElement('option'); o.value = o.textContent = c; selCam.appendChild(o); });
+  selCam.insertAdjacentHTML('beforeend', `<option value="${OTROS}">Otros</option>`);
 
   const selCho = document.getElementById('nv-chofer');
   selCho.innerHTML = '<option value="">— Seleccioná un chofer —</option>';
   CHOFERES.forEach(c => { const o = document.createElement('option'); o.value = o.textContent = c; selCho.appendChild(o); });
+  selCho.insertAdjacentHTML('beforeend', `<option value="${OTROS}">Otros</option>`);
+
+  ['nv-camion-otro', 'nv-chofer-otro'].forEach(id => {
+    const el = document.getElementById(id);
+    el.value = ''; el.style.display = 'none';
+  });
 
   document.getElementById('nv-bandejas').value = '';
+});
+
+['camion', 'chofer'].forEach(tipo => {
+  document.getElementById('nv-' + tipo).addEventListener('change', (e) => {
+    const inp = document.getElementById('nv-' + tipo + '-otro');
+    const esOtros = e.target.value === OTROS;
+    inp.style.display = esOtros ? 'block' : 'none';
+    if (esOtros) inp.focus(); else inp.value = '';
+  });
 });
 
 document.getElementById('btn-cancelar-viaje').addEventListener('click', mostrarPantallaInicio);
 
 document.getElementById('btn-iniciar-viaje').addEventListener('click', async () => {
-  const camion   = document.getElementById('nv-camion').value.trim();
-  const chofer   = document.getElementById('nv-chofer').value.trim();
+  let camion = document.getElementById('nv-camion').value.trim();
+  let chofer = document.getElementById('nv-chofer').value.trim();
+  if (camion === OTROS) camion = document.getElementById('nv-camion-otro').value.trim();
+  if (chofer === OTROS) chofer = document.getElementById('nv-chofer-otro').value.trim();
   const bandejas = parseInt(document.getElementById('nv-bandejas').value) || 0;
   if (!camion)   { showToast('Seleccioná un camión', true); return; }
   if (!chofer)   { showToast('Seleccioná un chofer', true); return; }
@@ -349,6 +370,8 @@ let clienteSeleccionado = '';
 
 function poblarDesplegable() {
   clienteSeleccionado = '';
+  const otro = document.getElementById('cliente-otro');
+  if (otro) { otro.value = ''; otro.style.display = 'none'; }
   const search = document.getElementById('dd-search');
   if (search) search.value = '';
   const lista = document.getElementById('cliente-dropdown');
@@ -378,20 +401,25 @@ function renderDropdownItems(filtro) {
     (!termino || c.toLowerCase().includes(termino))
   );
 
+  const itemOtros = `<div class="dd-item" onmousedown="seleccionarCliente('${OTROS}')"><b>Otros</b></div>`;
+
   if (!disponibles.length) {
-    items.innerHTML = '<div class="dd-item dd-empty">Sin resultados</div>';
+    items.innerHTML = '<div class="dd-item dd-empty">Sin resultados</div>' + itemOtros;
     return;
   }
 
   items.innerHTML = disponibles.map(c =>
     `<div class="dd-item" onmousedown="seleccionarCliente('${c.replace(/'/g, "\'")}')">${c}</div>`
-  ).join('');
+  ).join('') + itemOtros;
 }
 
 window.seleccionarCliente = function(nombre) {
   clienteSeleccionado = nombre;
+  const esOtros = nombre === OTROS;
   const trigger = document.getElementById('dd-trigger');
-  if (trigger) { trigger.value = nombre; trigger.blur(); }
+  if (trigger) { trigger.value = esOtros ? 'Otros' : nombre; trigger.blur(); }
+  const otro = document.getElementById('cliente-otro');
+  if (otro) { otro.style.display = esOtros ? 'block' : 'none'; otro.value = ''; if (esOtros) setTimeout(() => otro.focus(), 0); }
   const lista = document.getElementById('cliente-dropdown');
   if (lista) lista.style.display = 'none';
   const search = document.getElementById('dd-search');
@@ -409,8 +437,12 @@ document.addEventListener('click', (e) => {
 });
 
 document.getElementById('btn-agregar-cliente').addEventListener('click', () => {
-  const nombre = clienteSeleccionado;
+  let nombre = clienteSeleccionado;
   if (!nombre) { showToast('Seleccioná un cliente de la lista', true); return; }
+  if (nombre === OTROS) {
+    nombre = document.getElementById('cliente-otro').value.trim();
+    if (!nombre) { showToast('Escribí el nombre del cliente', true); return; }
+  }
   state.viajeActivo.clientes.push({ nombre, dejan: '', devuelven: '', done: false });
   clienteSeleccionado = '';
   const trigger = document.getElementById('dd-trigger');
