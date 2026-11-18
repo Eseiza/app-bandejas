@@ -32,7 +32,11 @@ const USERS = {
   "camion7": { password: "chofer.2026", role: "chofer",       nombre: "CEL7"   },
   "Admin":   { password: "admin.2026",  role: "visualizador", nombre: "Romero" },
   "Admin":   { password: "cin>>Eszenay7;",  role: "visualizador", nombre: "TI" },
+  "ventas":  { password: "Ventas.2026", role: "ventas",       nombre: "perfil" },
 };
+
+/* Ventas = visualizador de solo lectura (registros y deudas, sin editar ni gráficos) */
+const esSoloLectura = () => state.role === 'ventas';
 
 const OTROS = "__otros__";
 
@@ -229,9 +233,21 @@ function doLogin() {
   } else {
     document.getElementById('screen-vis').style.display = 'flex';
     document.getElementById('vis-nombre').textContent = user.nombre;
+    configurarPantallaVis();
     suscribirViajes();
     suscribirDeudas();
   }
+}
+
+/* Ajusta la pantalla de visualización según el rol (ventas = solo lectura) */
+function configurarPantallaVis() {
+  const ro = esSoloLectura();
+  document.getElementById('vis-role-tag').textContent = ro ? 'VENTAS' : 'VISUALIZADOR';
+  document.getElementById('vis-tab-graficos').style.display = ro ? 'none' : '';
+  document.getElementById('th-acciones').style.display      = ro ? 'none' : '';
+  // Siempre arrancar en la pestaña Registros
+  document.querySelectorAll('.vis-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === 'registros'));
+  document.querySelectorAll('.vis-tab-content').forEach(c => c.classList.toggle('active', c.id === 'tab-registros'));
 }
 
 async function recuperarViajeAbierto() {
@@ -642,7 +658,7 @@ function renderTablaRegistros(filas) {
   const tbody = document.getElementById('vis-tbody');
   filasRegistrosActuales = filas;
   if (!filas.length) {
-    tbody.innerHTML = '<tr><td colspan="8" class="cell-center text-muted">Sin registros para los filtros aplicados</td></tr>';
+    tbody.innerHTML = `<tr><td colspan="${esSoloLectura() ? 7 : 8}" class="cell-center text-muted">Sin registros para los filtros aplicados</td></tr>`;
     return;
   }
   tbody.innerHTML = filas.map((f, i) => {
@@ -657,10 +673,10 @@ function renderTablaRegistros(filas) {
       <td>${dejan}</td>
       <td>${devuelven}</td>
       <td class="${dif < 0 ? 'text-red' : dif > 0 ? 'text-green' : ''}">${dif > 0 ? '+' : ''}${dif}</td>
-      <td class="reg-acciones">
+      ${esSoloLectura() ? '' : `<td class="reg-acciones">
         <button class="btn-editar" onclick="abrirModalRegistro(${i})">EDITAR</button>
         <button class="btn-eliminar" onclick="eliminarRegistro(${i})">✕</button>
-      </td>
+      </td>`}
     </tr>`;
   }).join('');
 }
@@ -715,7 +731,7 @@ function renderDeudas() {
     row.innerHTML = `
       <div class="deuda-nombre">${nombre}</div>
       <div class="deuda-num ${colorClass}">${deudaFinal}</div>
-      <button class="btn-editar" onclick="abrirModalDeuda('${nombre.replace(/'/g,"\\'")}', ${deudaFinal})">EDITAR</button>`;
+      ${esSoloLectura() ? '' : `<button class="btn-editar" onclick="abrirModalDeuda('${nombre.replace(/'/g,"\\'")}', ${deudaFinal})">EDITAR</button>`}`;
     list.appendChild(row);
   });
 }
@@ -726,6 +742,7 @@ function renderDeudas() {
 let modalClienteActivo = null;
 
 window.abrirModalDeuda = function(nombre, deudaActual) {
+  if (esSoloLectura()) return;
   modalClienteActivo = nombre;
   document.getElementById('modal-cliente-nombre').textContent = nombre;
   document.getElementById('modal-deuda-input').value = deudaActual;
@@ -769,6 +786,7 @@ document.getElementById('modal-guardar').addEventListener('click', async () => {
 let modalRegistroActivo = null;
 
 window.abrirModalRegistro = function(i) {
+  if (esSoloLectura()) return;
   const fila = filasRegistrosActuales[i];
   if (!fila) return;
   modalRegistroActivo = { viajeId: fila.viajeId, clienteIndex: fila.clienteIndex };
@@ -814,6 +832,7 @@ document.getElementById('modal-registro-guardar').addEventListener('click', asyn
 });
 
 window.eliminarRegistro = async function(i) {
+  if (esSoloLectura()) return;
   const fila = filasRegistrosActuales[i];
   if (!fila) return;
   if (!confirm(`¿Eliminar el registro de "${fila.nombre}"? Esta acción no se puede deshacer.`)) return;
@@ -1216,6 +1235,8 @@ window.doLogout = function() {
   document.getElementById('login-user').value = '';
   document.getElementById('login-pass').value = '';
   document.getElementById('login-role').value = '';
+  document.getElementById('vis-tab-graficos').style.display = '';
+  document.getElementById('th-acciones').style.display      = '';
   document.getElementById('login-form-body').classList.remove('visible');
 };
 
