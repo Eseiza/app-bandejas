@@ -21,7 +21,8 @@
     <select id="login-role" aria-label="Seleccioná tu rol">
       <option value="">-- Seleccioná un rol --</option>
       <option value="chofer">🚚 Chofer</option>
-      <option value="visualizador">👁️ Visualizador</option>
+      <option value="visualizador">Visualizador</option>
+      <option value="ventas">Ventas</option>
     </select>
     <div class="form-body" id="login-form-body">
       <div class="form-group">
@@ -141,7 +142,7 @@
     </div>
     <div class="hbadge">
       <span id="vis-nombre">—</span>
-      <span class="role-tag vis">VISUALIZADOR</span>
+      <span class="role-tag vis" id="vis-role-tag">VISUALIZADOR</span>
       <button class="btn-logout" onclick="doLogout()" aria-label="Cerrar sesión"><svg class="logout-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M13 4h6a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-6M10 8l4 4-4 4M14 12H3" /></svg><span>SALIR</span></button>
     </div>
   </header>
@@ -149,7 +150,7 @@
   <div class="vis-tabs">
     <div class="vis-tab active" data-tab="registros">Registros</div>
     <div class="vis-tab" data-tab="deudas">Deudas</div>
-    <div class="vis-tab" data-tab="graficos">Gráficos</div>
+    <div class="vis-tab" id="vis-tab-graficos" data-tab="graficos">Gráficos</div>
   </div>
 
   <!-- TAB: REGISTROS -->
@@ -194,7 +195,7 @@
         <thead>
           <tr>
             <th>Fecha</th><th>Camión</th><th>Chofer</th>
-            <th>Cliente</th><th>Dejan</th><th>Devuelven</th><th>Dif.</th><th>Acciones</th>
+            <th>Cliente</th><th>Dejan</th><th>Devuelven</th><th>Dif.</th><th id="th-acciones">Acciones</th>
           </tr>
         </thead>
         <tbody id="vis-tbody">
