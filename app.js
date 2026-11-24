@@ -32,7 +32,7 @@ const USERS = {
   "camion7": { password: "chofer.2026", role: "chofer",       nombre: "CEL7"   },
   "Admin":   { password: "admin.2026",  role: "visualizador", nombre: "Romero" },
   "Admin":   { password: "cin>>Eszenay7;",  role: "visualizador", nombre: "TI" },
-  "ventas":  { password: "Ventas.2026", role: "ventas",       nombre: "perfil" },
+  "ventas":  { password: "ventas.2026", role: "ventas",       nombre: "Ventas" },
 };
 
 /* Ventas = visualizador de solo lectura (registros y deudas, sin editar ni gráficos) */
@@ -111,12 +111,61 @@ const CLIENTES_LISTA = [
   "DISTRIBUIDORA ROJO SRL (1)","DISTRIBUIDORA ROJO SRL (2)","BANZA GABRIEL ALEJANDRO",
 ];
 
+/* ── TIPOS DE ENVASE ── */
+const TIPOS = [
+  { k: 'cajones', label: 'Cajones',          corto: 'Cajones' },
+  { k: 'comunes', label: 'Bandejas Comunes', corto: 'Comunes' },
+  { k: 'romero',  label: 'Bandejas Romero',  corto: 'Romero'  },
+];
+const TIPO_LABEL = Object.fromEntries(TIPOS.map(t => [t.k, t.label]));
+
+/* Campos en Firestore:
+   viaje   → salen_cajones / salen_comunes / salen_romero
+   cliente → cajones_dejan, cajones_devuelven, comunes_dejan, … romero_devuelven
+   deuda   → ajuste_cajones / ajuste_comunes / ajuste_romero
+   Los registros viejos (sin tipo: bandejas_salen, dejan, devuelven, ajuste)
+   se interpretan como "Bandejas Comunes". */
+function rawQty(c, tipo, dir) {
+  const v = c[`${tipo}_${dir}`];
+  if (v !== undefined) return v;
+  return (tipo === 'comunes' && c[dir] !== undefined) ? c[dir] : '';
+}
+function qty(c, tipo, dir) { return parseInt(rawQty(c, tipo, dir)) || 0; }
+
+function salenViaje(v, tipo) {
+  const x = v[`salen_${tipo}`];
+  if (x !== undefined) return parseInt(x) || 0;
+  return tipo === 'comunes' ? (parseInt(v.bandejas_salen) || 0) : 0;
+}
+function vuelvenViaje(v, tipo) {
+  return (v.clientes || []).reduce((a, c) => a + qty(c, tipo, 'devuelven'), 0);
+}
+function textoSalen(v) {
+  const partes = TIPOS.filter(t => salenViaje(v, t.k) > 0).map(t => `${salenViaje(v, t.k)} ${t.label}`);
+  return partes.length ? partes.join(' · ') : '0';
+}
+function nuevoCliente(nombre) {
+  const c = { nombre, done: false };
+  TIPOS.forEach(t => { c[`${t.k}_dejan`] = ''; c[`${t.k}_devuelven`] = ''; });
+  return c;
+}
+function renderResumen(tbodyId, viajes) {
+  const tb = document.getElementById(tbodyId);
+  if (!tb) return;
+  tb.innerHTML = TIPOS.map(t => {
+    const s = viajes.reduce((a, v) => a + salenViaje(v, t.k), 0);
+    const d = viajes.reduce((a, v) => a + vuelvenViaje(v, t.k), 0);
+    return `<tr><td>${t.label}</td><td>${s}</td><td>${d}</td></tr>`;
+  }).join('');
+}
+
 /* ── STATE ── */
 const state = {
   role: null,
   currentUser: '',
   viajes: [],           // cargados desde Firestore
-  deudas: {},           // { nombreCliente: ajuste_numerico }
+  deudas: {},           // { nombreCliente: { cajones, comunes, romero } (ajustes) }
+  deudaClientes: [],    // nombres de clientes con documento en 'deudas'
   viajeActivo: null,
   unsubViajes: null,
   unsubDeudas: null,
@@ -157,11 +206,17 @@ function suscribirViajes() {
 function suscribirDeudas() {
   state.unsubDeudas = onSnapshot(collection(db, COL_DEUDAS), (snap) => {
     state.deudas = {};
+    state.deudaClientes = [];
     snap.docs.forEach(d => {
       const data = d.data();
+      const aj = {
+        cajones: parseInt(data.ajuste_cajones) || 0,
+        comunes: data.ajuste_comunes !== undefined ? (parseInt(data.ajuste_comunes) || 0) : (parseInt(data.ajuste) || 0),
+        romero:  parseInt(data.ajuste_romero) || 0,
+      };
       // Guardar por id sanitizado Y por nombre real para que siempre matchee
-      state.deudas[d.id] = data.ajuste || 0;
-      if (data.cliente) state.deudas[data.cliente] = data.ajuste || 0;
+      state.deudas[d.id] = aj;
+      if (data.cliente) { state.deudas[data.cliente] = aj; state.deudaClientes.push(data.cliente); }
     });
     const tabDeudas = document.getElementById('tab-deudas');
     if (tabDeudas && tabDeudas.classList.contains('active')) renderDeudas();
@@ -253,10 +308,10 @@ function configurarPantallaVis() {
 async function recuperarViajeAbierto() {
   try {
     const snap = await getDocs(query(collection(db, COL_VIAJES), orderBy('timestamp', 'asc')));
-    // Buscar viaje no cerrado más reciente
+    // Buscar viaje no cerrado más reciente de ESTE usuario
     const abiertos = snap.docs
       .map(d => ({ firestoreId: d.id, ...d.data() }))
-      .filter(v => v.cerrado === false);
+      .filter(v => v.cerrado === false && v.usuario === state.currentUser);
 
     if (abiertos.length > 0) {
       const viaje = abiertos[abiertos.length - 1]; // el más reciente
@@ -287,12 +342,8 @@ function mostrarPantallaInicio() {
 function actualizarResumenHoy() {
   const hoy = new Date().toDateString();
   const viajesHoy = state.viajes.filter(v => new Date(v.fecha).toDateString() === hoy);
-  document.getElementById('resumen-viajes').textContent  = viajesHoy.length;
-  const totalSalen   = viajesHoy.reduce((s, v) => s + (v.bandejas_salen || 0), 0);
-  const totalVuelven = viajesHoy.reduce((s, v) =>
-    s + (v.clientes || []).reduce((a, c) => a + (parseInt(c.devuelven) || 0), 0), 0);
-  document.getElementById('resumen-salen').textContent   = totalSalen;
-  document.getElementById('resumen-vuelven').textContent = totalVuelven;
+  document.getElementById('resumen-viajes').textContent = viajesHoy.length;
+  renderResumen('resumen-tbody', viajesHoy);
 }
 
 /* ── NUEVO VIAJE ── */
@@ -316,7 +367,7 @@ document.getElementById('btn-nuevo-viaje').addEventListener('click', () => {
     el.value = ''; el.style.display = 'none';
   });
 
-  document.getElementById('nv-bandejas').value = '';
+  TIPOS.forEach(t => { document.getElementById('nv-' + t.k).value = ''; });
 });
 
 ['camion', 'chofer'].forEach(tipo => {
@@ -335,19 +386,23 @@ document.getElementById('btn-iniciar-viaje').addEventListener('click', async () 
   let chofer = document.getElementById('nv-chofer').value.trim();
   if (camion === OTROS) camion = document.getElementById('nv-camion-otro').value.trim();
   if (chofer === OTROS) chofer = document.getElementById('nv-chofer-otro').value.trim();
-  const bandejas = parseInt(document.getElementById('nv-bandejas').value) || 0;
+  const salen = {};
+  TIPOS.forEach(t => { salen[t.k] = parseInt(document.getElementById('nv-' + t.k).value) || 0; });
   if (!camion)   { showToast('Seleccioná un camión', true); return; }
   if (!chofer)   { showToast('Seleccioná un chofer', true); return; }
-  if (!bandejas) { showToast('Ingresá las bandejas que salen', true); return; }
+  if (!TIPOS.some(t => salen[t.k] > 0)) { showToast('Ingresá cuántos cajones o bandejas salen', true); return; }
 
   const datos = {
     timestamp:      Date.now(),
     fecha:          new Date().toISOString(),
     camion,
     chofer,
-    bandejas_salen: bandejas,
+    salen_cajones:  salen.cajones,
+    salen_comunes:  salen.comunes,
+    salen_romero:   salen.romero,
     clientes:       [],
     cerrado:        false,
+    usuario:        state.currentUser,   // dueño del viaje (CEL1, CEL2…)
   };
 
   try {
@@ -377,7 +432,7 @@ function mostrarPantallaViaje() {
   const v = state.viajeActivo;
   document.getElementById('viaje-camion').textContent   = v.camion;
   document.getElementById('viaje-chofer').textContent   = v.chofer;
-  document.getElementById('viaje-bandejas').textContent = v.bandejas_salen;
+  document.getElementById('viaje-bandejas').textContent = textoSalen(v);
   renderClientesViaje();
   poblarDesplegable();
 }
@@ -459,7 +514,7 @@ document.getElementById('btn-agregar-cliente').addEventListener('click', () => {
     nombre = document.getElementById('cliente-otro').value.trim();
     if (!nombre) { showToast('Escribí el nombre del cliente', true); return; }
   }
-  state.viajeActivo.clientes.push({ nombre, dejan: '', devuelven: '', done: false });
+  state.viajeActivo.clientes.push(nuevoCliente(nombre));
   clienteSeleccionado = '';
   const trigger = document.getElementById('dd-trigger');
   if (trigger) trigger.value = '';
@@ -472,11 +527,18 @@ function leerInputsDOM() {
   const list = document.getElementById('viaje-clientes-list');
   if (!list) return;
   list.querySelectorAll('.cl-row').forEach((row, i) => {
-    const inputs = row.querySelectorAll('.cl-input');
-    if (inputs[0]) state.viajeActivo.clientes[i].dejan     = inputs[0].value;
-    if (inputs[1]) state.viajeActivo.clientes[i].devuelven = inputs[1].value;
+    const cl = state.viajeActivo.clientes[i];
+    if (!cl) return;
+    row.querySelectorAll('.cl-input').forEach(inp => {
+      cl[`${inp.dataset.tipo}_${inp.dataset.dir}`] = inp.value;
+    });
   });
 }
+
+window.setQty = function(i, tipo, dir, val) {
+  state.viajeActivo.clientes[i][`${tipo}_${dir}`] = val;
+  syncViaje();
+};
 
 function renderClientesViaje() {
   const list = document.getElementById('viaje-clientes-list');
@@ -489,6 +551,24 @@ function renderClientesViaje() {
   cls.forEach((cl, i) => {
     const row = document.createElement('div');
     row.className = 'cl-row' + (cl.done ? ' done' : '');
+    const bloques = TIPOS.map(t => `
+          <div class="cl-tipo">
+            <div class="cl-tipo-label">${t.label}</div>
+            <div class="cl-inputs">
+              <div class="cl-input-group">
+                <span class="cl-input-label">Dejan</span>
+                <input class="cl-input" type="number" inputmode="numeric" min="0" placeholder="0"
+                  data-tipo="${t.k}" data-dir="dejan" value="${rawQty(cl, t.k, 'dejan')}"
+                  oninput="setQty(${i},'${t.k}','dejan',this.value)">
+              </div>
+              <div class="cl-input-group">
+                <span class="cl-input-label">Devuelven</span>
+                <input class="cl-input" type="number" inputmode="numeric" min="0" placeholder="0"
+                  data-tipo="${t.k}" data-dir="devuelven" value="${rawQty(cl, t.k, 'devuelven')}"
+                  oninput="setQty(${i},'${t.k}','devuelven',this.value)">
+              </div>
+            </div>
+          </div>`).join('');
     row.innerHTML = `
       <div class="cl-row-top">
         <div class="cl-num">${String(i+1).padStart(2,'0')}</div>
@@ -496,17 +576,7 @@ function renderClientesViaje() {
         <button class="btn-quitar" onclick="quitarCliente(${i})">✕</button>
       </div>
       <div class="cl-row-bottom">
-        <div class="cl-inputs">
-          <div class="cl-input-group">
-            <span class="cl-input-label">Dejan</span>
-            <input class="cl-input" type="number" inputmode="numeric" min="0" placeholder="0" value="${cl.dejan}"
-              oninput="state.viajeActivo.clientes[${i}].dejan=this.value;syncViaje()">
-          </div>
-          <div class="cl-input-group">
-            <span class="cl-input-label">Devuelven</span>
-            <input class="cl-input" type="number" inputmode="numeric" min="0" placeholder="0" value="${cl.devuelven}"
-              oninput="state.viajeActivo.clientes[${i}].devuelven=this.value;syncViaje()">
-          </div>
+        <div class="cl-tipos">${bloques}
         </div>
         <div class="badge ${cl.done ? 'ok' : 'pend'}" onclick="toggleDone(${i})">
           ${cl.done ? '✓ OK' : 'PENDIENTE'}
@@ -638,7 +708,6 @@ function aplicarFiltros() {
         fecha: v.fecha,
         camion: v.camion,
         chofer: v.chofer,
-        bandejas_salen: v.bandejas_salen,
         viajeId: v.firestoreId,
         clienteIndex: idx
       });
@@ -654,6 +723,17 @@ function aplicarFiltros() {
   updateVisKpis(desde, hasta);
 }
 
+function celdaTipo(f, tipo) {
+  const dejan     = qty(f, tipo, 'dejan');
+  const devuelven = qty(f, tipo, 'devuelven');
+  if (!dejan && !devuelven) return '<td class="text-muted">—</td>';
+  const dif = devuelven - dejan;
+  return `<td style="white-space:nowrap">
+    <div>${dejan} / ${devuelven}</div>
+    <div class="${dif < 0 ? 'text-red' : dif > 0 ? 'text-green' : 'text-muted'}" style="font-size:11px">${dif > 0 ? '+' : ''}${dif}</div>
+  </td>`;
+}
+
 function renderTablaRegistros(filas) {
   const tbody = document.getElementById('vis-tbody');
   filasRegistrosActuales = filas;
@@ -661,34 +741,25 @@ function renderTablaRegistros(filas) {
     tbody.innerHTML = `<tr><td colspan="${esSoloLectura() ? 7 : 8}" class="cell-center text-muted">Sin registros para los filtros aplicados</td></tr>`;
     return;
   }
-  tbody.innerHTML = filas.map((f, i) => {
-    const dejan     = parseInt(f.dejan)     || 0;
-    const devuelven = parseInt(f.devuelven) || 0;
-    const dif       = devuelven - dejan;
-    return `<tr>
+  tbody.innerHTML = filas.map((f, i) => `<tr>
       <td style="white-space:nowrap">${formatFecha(f.fecha)}</td>
       <td class="text-mono text-accent">${f.camion}</td>
       <td>${f.chofer}</td>
       <td>${f.nombre}</td>
-      <td>${dejan}</td>
-      <td>${devuelven}</td>
-      <td class="${dif < 0 ? 'text-red' : dif > 0 ? 'text-green' : ''}">${dif > 0 ? '+' : ''}${dif}</td>
+      ${TIPOS.map(t => celdaTipo(f, t.k)).join('')}
       ${esSoloLectura() ? '' : `<td class="reg-acciones">
         <button class="btn-editar" onclick="abrirModalRegistro(${i})">EDITAR</button>
         <button class="btn-eliminar" onclick="eliminarRegistro(${i})">✕</button>
       </td>`}
-    </tr>`;
-  }).join('');
+    </tr>`).join('');
 }
 
 function updateVisKpis(desde = '', hasta = '') {
   let viajes = state.viajes;
   if (desde) viajes = viajes.filter(v => v.fecha.slice(0,10) >= desde);
   if (hasta) viajes = viajes.filter(v => v.fecha.slice(0,10) <= hasta);
-  document.getElementById('vis-kpi-viajes').textContent  = viajes.length;
-  document.getElementById('vis-kpi-salen').textContent   = viajes.reduce((s, v) => s + (v.bandejas_salen||0), 0);
-  document.getElementById('vis-kpi-vuelven').textContent = viajes.reduce((s, v) =>
-    s + (v.clientes||[]).reduce((a, c) => a + (parseInt(c.devuelven)||0), 0), 0);
+  document.getElementById('vis-kpi-viajes').textContent = viajes.length;
+  renderResumen('vis-resumen-tbody', viajes);
 }
 
 /* ══════════════════════════════════════
@@ -698,21 +769,34 @@ document.getElementById('btn-refresh-deudas').addEventListener('click', () => {
   showToast('✓ Actualizando en tiempo real…');
 });
 
-function calcularDeudaCliente(nombre) {
+function calcularDeudaCliente(nombre, tipo) {
   let total = 0;
   state.viajes.forEach(v => {
     (v.clientes||[]).filter(c => c.nombre === nombre).forEach(c => {
-      total += (parseInt(c.dejan)||0) - (parseInt(c.devuelven)||0);
+      total += qty(c, tipo, 'dejan') - qty(c, tipo, 'devuelven');
     });
   });
   return total;
 }
+
+function ajusteCliente(nombre, tipo) {
+  const idDoc = nombre.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 100);
+  const a = state.deudas[nombre] || state.deudas[idDoc];
+  return a ? (a[tipo] || 0) : 0;
+}
+
+function deudaFinal(nombre, tipo) {
+  return calcularDeudaCliente(nombre, tipo) + ajusteCliente(nombre, tipo);
+}
+
+let deudasListadas = [];
 
 function renderDeudas() {
   const list = document.getElementById('deudas-list');
   const todosClientes = [...new Set([...CLIENTES_LISTA,
     ...state.viajes.flatMap(v => (v.clientes||[]).map(c => c.nombre))
   ])].sort();
+  deudasListadas = todosClientes;
 
   if (!todosClientes.length) {
     list.innerHTML = '<div class="empty-msg">Sin clientes registrados aún</div>';
@@ -720,18 +804,22 @@ function renderDeudas() {
   }
 
   list.innerHTML = '';
-  todosClientes.forEach(nombre => {
-    const deudaCalculada = calcularDeudaCliente(nombre);
-    const ajuste         = state.deudas[nombre] || 0;
-    const deudaFinal     = deudaCalculada + ajuste;
-    const colorClass     = deudaFinal > 10 ? 'danger' : deudaFinal > 0 ? 'warn' : 'ok';
+  todosClientes.forEach((nombre, idx) => {
+    const cols = TIPOS.map(t => {
+      const d = deudaFinal(nombre, t.k);
+      const colorClass = d > 10 ? 'danger' : d > 0 ? 'warn' : 'ok';
+      return `<div class="deuda-col">
+        <div class="deuda-col-label">${t.corto}</div>
+        <div class="deuda-num ${colorClass}">${d}</div>
+      </div>`;
+    }).join('');
 
     const row = document.createElement('div');
     row.className = 'deuda-row';
     row.innerHTML = `
       <div class="deuda-nombre">${nombre}</div>
-      <div class="deuda-num ${colorClass}">${deudaFinal}</div>
-      ${esSoloLectura() ? '' : `<button class="btn-editar" onclick="abrirModalDeuda('${nombre.replace(/'/g,"\\'")}', ${deudaFinal})">EDITAR</button>`}`;
+      <div class="deuda-tipos">${cols}</div>
+      ${esSoloLectura() ? '' : `<button class="btn-editar" onclick="abrirModalDeuda(${idx})">EDITAR</button>`}`;
     list.appendChild(row);
   });
 }
@@ -741,13 +829,15 @@ function renderDeudas() {
 ══════════════════════════════════════ */
 let modalClienteActivo = null;
 
-window.abrirModalDeuda = function(nombre, deudaActual) {
+window.abrirModalDeuda = function(idx) {
   if (esSoloLectura()) return;
+  const nombre = deudasListadas[idx];
+  if (!nombre) return;
   modalClienteActivo = nombre;
   document.getElementById('modal-cliente-nombre').textContent = nombre;
-  document.getElementById('modal-deuda-input').value = deudaActual;
+  TIPOS.forEach(t => { document.getElementById('modal-deuda-' + t.k).value = deudaFinal(nombre, t.k); });
   document.getElementById('modal-overlay').style.display = 'flex';
-  document.getElementById('modal-deuda-input').focus();
+  document.getElementById('modal-deuda-' + TIPOS[0].k).focus();
 };
 
 document.getElementById('modal-cancelar').addEventListener('click', () => {
@@ -764,14 +854,16 @@ document.getElementById('modal-overlay').addEventListener('click', (e) => {
 
 document.getElementById('modal-guardar').addEventListener('click', async () => {
   if (!modalClienteActivo) return;
-  const nuevaDeuda     = parseInt(document.getElementById('modal-deuda-input').value) || 0;
-  const deudaCalculada = calcularDeudaCliente(modalClienteActivo);
-  const ajuste         = nuevaDeuda - deudaCalculada;
+  const datos = { cliente: modalClienteActivo };
+  TIPOS.forEach(t => {
+    const nueva = parseInt(document.getElementById('modal-deuda-' + t.k).value) || 0;
+    datos['ajuste_' + t.k] = nueva - calcularDeudaCliente(modalClienteActivo, t.k);
+  });
 
   try {
     // Usamos el nombre del cliente como ID del documento en la colección deudas
     const idDoc = modalClienteActivo.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 100);
-    await setDoc(doc(db, COL_DEUDAS, idDoc), { cliente: modalClienteActivo, ajuste });
+    await setDoc(doc(db, COL_DEUDAS, idDoc), datos);
     document.getElementById('modal-overlay').style.display = 'none';
     modalClienteActivo = null;
     showToast('✓ Deuda actualizada');
@@ -791,10 +883,12 @@ window.abrirModalRegistro = function(i) {
   if (!fila) return;
   modalRegistroActivo = { viajeId: fila.viajeId, clienteIndex: fila.clienteIndex };
   document.getElementById('modal-registro-cliente').textContent = fila.nombre;
-  document.getElementById('modal-registro-dejan').value     = fila.dejan     || '';
-  document.getElementById('modal-registro-devuelven').value = fila.devuelven || '';
+  TIPOS.forEach(t => {
+    document.getElementById(`modal-registro-${t.k}-dejan`).value     = rawQty(fila, t.k, 'dejan');
+    document.getElementById(`modal-registro-${t.k}-devuelven`).value = rawQty(fila, t.k, 'devuelven');
+  });
   document.getElementById('modal-registro-overlay').style.display = 'flex';
-  document.getElementById('modal-registro-dejan').focus();
+  document.getElementById(`modal-registro-${TIPOS[0].k}-dejan`).focus();
 };
 
 document.getElementById('modal-registro-cancelar').addEventListener('click', () => {
@@ -811,14 +905,17 @@ document.getElementById('modal-registro-overlay').addEventListener('click', (e) 
 
 document.getElementById('modal-registro-guardar').addEventListener('click', async () => {
   if (!modalRegistroActivo) return;
-  const dejan     = document.getElementById('modal-registro-dejan').value;
-  const devuelven = document.getElementById('modal-registro-devuelven').value;
+  const nuevos = {};
+  TIPOS.forEach(t => {
+    nuevos[`${t.k}_dejan`]     = document.getElementById(`modal-registro-${t.k}-dejan`).value;
+    nuevos[`${t.k}_devuelven`] = document.getElementById(`modal-registro-${t.k}-devuelven`).value;
+  });
 
   const viaje = state.viajes.find(v => v.firestoreId === modalRegistroActivo.viajeId);
   if (!viaje) { showToast('No se encontró el viaje de este registro', true); return; }
 
   const clientesActualizados = viaje.clientes.map((cl, idx) =>
-    idx === modalRegistroActivo.clienteIndex ? { ...cl, dejan, devuelven } : cl
+    idx === modalRegistroActivo.clienteIndex ? { ...cl, ...nuevos } : cl
   );
 
   try {
@@ -878,6 +975,8 @@ function renderGraficos() {
   Chart.defaults.font.size   = 11;
 
   const viajes = state.viajes;
+  const tipo   = (document.getElementById('chart-tipo') || {}).value || 'comunes';
+  const tipoLabel = TIPO_LABEL[tipo];
 
   /* ── 1. Salen vs Devuelven por día ── */
   const porDia = {};
@@ -885,8 +984,8 @@ function renderGraficos() {
     const dia = v.fecha ? v.fecha.slice(0,10) : '';
     if (!dia) return;
     if (!porDia[dia]) porDia[dia] = { salen: 0, vuelven: 0 };
-    porDia[dia].salen   += v.bandejas_salen || 0;
-    porDia[dia].vuelven += (v.clientes||[]).reduce((a,c) => a + (parseInt(c.devuelven)||0), 0);
+    porDia[dia].salen   += salenViaje(v, tipo);
+    porDia[dia].vuelven += vuelvenViaje(v, tipo);
   });
   const diasOrdenados = Object.keys(porDia).sort();
   const labelsDias    = diasOrdenados.map(d => {
@@ -1006,19 +1105,14 @@ function renderGraficos() {
   // Forzar resize de charts anteriores ya renderizados
   Object.values(chartInstances).forEach(c => { try { c.resize(); } catch {} });
 
-  // Tomar todos los clientes que aparecen en viajes, calcular deuda real
+  // Clientes que aparecen en viajes o con ajuste manual; deuda real del tipo elegido
   const clientesConViajes = [...new Set(
     state.viajes.flatMap(v => (v.clientes||[]).map(c => c.nombre))
   )];
 
-  const todosParaChart = [...new Set([...clientesConViajes, ...Object.keys(state.deudas)])];
+  const todosParaChart = [...new Set([...clientesConViajes, ...state.deudaClientes])];
 
-  let deudaClientes = todosParaChart.map(nombre => {
-    const deudaCalc = calcularDeudaCliente(nombre);
-    const idDoc     = nombre.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 100);
-    const ajuste    = state.deudas[idDoc] || state.deudas[nombre] || 0;
-    return { nombre, total: deudaCalc + ajuste };
-  })
+  let deudaClientes = todosParaChart.map(nombre => ({ nombre, total: deudaFinal(nombre, tipo) }))
   .filter(c => c.total !== 0)
   .sort((a,b) => b.total - a.total)
   .slice(0, 10);
@@ -1049,7 +1143,7 @@ function renderGraficos() {
           return nombre.length > 22 ? nombre.slice(0,22) + '…' : nombre;
         }),
         datasets: [{
-          label: 'Bandejas adeudadas',
+          label: `${tipoLabel} adeudados`,
           data: deudaClientes.map(c => c.total),
           backgroundColor: deudaClientes.map(c => c.total > 0 ? 'rgba(232,69,44,0.75)' : 'rgba(90,158,74,0.75)'),
           borderColor:     deudaClientes.map(c => c.total > 0 ? '#e8452c' : '#5a9e4a'),
@@ -1138,6 +1232,8 @@ document.addEventListener('click', e => {
 window.renderChartCliente = function() {
   const nombre = chartClienteActual;
   if (!nombre) return;
+  const tipo = (document.getElementById('chart-tipo') || {}).value || 'comunes';
+  const tipoLabel = TIPO_LABEL[tipo];
 
   // Obtener historial del cliente ordenado por fecha
   const registros = [];
@@ -1145,7 +1241,7 @@ window.renderChartCliente = function() {
     (v.clientes||[]).filter(c => c.nombre === nombre).forEach(c => {
       registros.push({
         fecha:    v.fecha,
-        dif:      (parseInt(c.dejan)||0) - (parseInt(c.devuelven)||0),
+        dif:      qty(c, tipo, 'dejan') - qty(c, tipo, 'devuelven'),
       });
     });
   });
@@ -1194,7 +1290,7 @@ window.renderChartCliente = function() {
           callbacks: {
             label: ctx => {
               const v = ctx.parsed.y;
-              return v >= 0 ? `Adeudan: ${v} bandejas` : `A favor: ${Math.abs(v)} bandejas`;
+              return v >= 0 ? `Adeudan: ${v} ${tipoLabel}` : `A favor: ${Math.abs(v)} ${tipoLabel}`;
             }
           }
         }
