@@ -21,8 +21,8 @@
     <select id="login-role" aria-label="Seleccioná tu rol">
       <option value="">-- Seleccioná un rol --</option>
       <option value="chofer">🚚 Chofer</option>
-      <option value="visualizador">Visualizador</option>
-      <option value="ventas">Ventas</option>
+      <option value="visualizador">👁️ Visualizador</option>
+      <option value="ventas">🛒 Ventas</option>
     </select>
     <div class="form-body" id="login-form-body">
       <div class="form-group">
@@ -57,10 +57,17 @@
   <!-- INICIO -->
   <div id="pantalla-inicio" class="chofer-screen app-content">
     <div class="section-title">RESUMEN DE HOY</div>
-    <div class="kpi-row">
-      <div class="kpi green"><div class="kpi-val" id="resumen-viajes">0</div><div class="kpi-label">Viajes</div></div>
-      <div class="kpi"><div class="kpi-val" id="resumen-salen">0</div><div class="kpi-label">Salen</div></div>
-      <div class="kpi"><div class="kpi-val" id="resumen-vuelven">0</div><div class="kpi-label">Vuelven</div></div>
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:baseline;justify-content:space-between">
+        <div class="card-title mb-0">Viajes</div>
+        <div class="kpi-val" id="resumen-viajes" style="font-size:30px">0</div>
+      </div>
+      <div class="tbl-wrap">
+        <table class="tbl tbl-resumen">
+          <thead><tr><th>Tipo</th><th>Salen</th><th>Vuelven</th></tr></thead>
+          <tbody id="resumen-tbody"></tbody>
+        </table>
+      </div>
     </div>
     <button class="btn btn-big" id="btn-nuevo-viaje">INICIAR VIAJE</button>
   </div>
@@ -83,9 +90,17 @@
         <select id="nv-chofer"><option value="">— Seleccioná un chofer —</option></select>
         <input type="text" id="nv-chofer-otro" placeholder="Escribí el nombre del chofer" autocomplete="off" style="display:none;margin-top:8px;">
       </div>
+      <div class="field">
+        <label>Cajones que salen</label>
+        <input type="number" inputmode="numeric" id="nv-cajones" placeholder="0" min="0">
+      </div>
+      <div class="field">
+        <label>Bandejas Comunes que salen</label>
+        <input type="number" inputmode="numeric" id="nv-comunes" placeholder="0" min="0">
+      </div>
       <div class="field mb-0">
-        <label>Bandejas que salen</label>
-        <input type="number" inputmode="numeric" id="nv-bandejas" placeholder="0" min="0">
+        <label>Bandejas Romero que salen</label>
+        <input type="number" inputmode="numeric" id="nv-romero" placeholder="0" min="0">
       </div>
     </div>
     <button class="btn btn-green" id="btn-iniciar-viaje">INICIAR VIAJE →</button>
@@ -97,7 +112,7 @@
       <button class="btn-back" id="btn-volver-inicio">← Volver</button>
       <div class="viaje-info">
         <span class="text-accent text-mono" id="viaje-camion">—</span>
-        <span class="text-muted text-mono" style="font-size:11px"> · <span id="viaje-chofer">—</span> · <span id="viaje-bandejas">—</span> bandejas</span>
+        <span class="text-muted text-mono" style="font-size:11px"> · <span id="viaje-chofer">—</span> · <span id="viaje-bandejas">—</span></span>
       </div>
     </div>
     <div class="card add-cliente-card">
@@ -159,10 +174,17 @@
       <div class="section-title" style="margin:0">REGISTROS</div>
       <button class="btn btn-sm" id="btn-refresh-vis">↻</button>
     </div>
-    <div class="kpi-row">
-      <div class="kpi green"><div class="kpi-val" id="vis-kpi-viajes">0</div><div class="kpi-label">Viajes</div></div>
-      <div class="kpi"><div class="kpi-val" id="vis-kpi-salen">0</div><div class="kpi-label">Salen</div></div>
-      <div class="kpi"><div class="kpi-val" id="vis-kpi-vuelven">0</div><div class="kpi-label">Vuelven</div></div>
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:baseline;justify-content:space-between">
+        <div class="card-title mb-0">Viajes</div>
+        <div class="kpi-val" id="vis-kpi-viajes" style="font-size:30px">0</div>
+      </div>
+      <div class="tbl-wrap">
+        <table class="tbl tbl-resumen">
+          <thead><tr><th>Tipo</th><th>Salen</th><th>Vuelven</th></tr></thead>
+          <tbody id="vis-resumen-tbody"></tbody>
+        </table>
+      </div>
     </div>
     <div class="card">
       <div class="card-title">Filtros</div>
@@ -195,7 +217,7 @@
         <thead>
           <tr>
             <th>Fecha</th><th>Camión</th><th>Chofer</th>
-            <th>Cliente</th><th>Dejan</th><th>Devuelven</th><th>Dif.</th><th id="th-acciones">Acciones</th>
+            <th>Cliente</th><th>Cajones<br><small>dejan / devuelven</small></th><th>Bandejas Comunes<br><small>dejan / devuelven</small></th><th>Bandejas Romero<br><small>dejan / devuelven</small></th><th id="th-acciones">Acciones</th>
           </tr>
         </thead>
         <tbody id="vis-tbody">
@@ -209,12 +231,12 @@
   <!-- TAB: DEUDAS -->
   <div id="tab-deudas" class="vis-tab-content app-content">
     <div class="section-header">
-      <div class="section-title" style="margin:0">DEUDA DE BANDEJAS</div>
+      <div class="section-title" style="margin:0">DEUDAS</div>
       <button class="btn btn-sm" id="btn-refresh-deudas">↻</button>
     </div>
     <div class="card" style="padding:0;overflow:hidden">
       <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
-        <div class="card-title mb-0">Bandejas pendientes por cliente</div>
+        <div class="card-title mb-0">Cajones y bandejas pendientes por cliente</div>
       </div>
       <div id="deudas-list"></div>
     </div>
@@ -226,13 +248,24 @@
       <div class="section-title" style="margin:0">GRÁFICOS</div>
     </div>
 
+    <div class="card" style="margin-bottom:16px">
+      <div class="field mb-0">
+        <label>Tipo de envase</label>
+        <select id="chart-tipo" onchange="renderGraficos()">
+          <option value="cajones">Cajones</option>
+          <option value="comunes" selected>Bandejas Comunes</option>
+          <option value="romero">Bandejas Romero</option>
+        </select>
+      </div>
+    </div>
+
     <div class="charts-grid">
       <div class="card">
-        <div class="card-title">Bandejas que salen vs vuelven por día</div>
+        <div class="card-title">Salen vs vuelven por día</div>
         <div style="display:flex;align-items:center;justify-content:flex-end;margin-bottom:6px;">
-          <button class="btn-expandir" onclick="abrirChartModal('chart-salen-vuelven', 'Bandejas salen vs devuelven por día')">⤢ EXPANDIR</button>
+          <button class="btn-expandir" onclick="abrirChartModal('chart-salen-vuelven', 'Salen vs vuelven por día')">⤢ EXPANDIR</button>
         </div>
-        <div style="position:relative;height:260px;cursor:pointer;" onclick="abrirChartModal('chart-salen-vuelven', 'Bandejas salen vs devuelven por día')">
+        <div style="position:relative;height:260px;cursor:pointer;" onclick="abrirChartModal('chart-salen-vuelven', 'Salen vs vuelven por día')">
           <canvas id="chart-salen-vuelven"></canvas>
         </div>
       </div>
@@ -302,8 +335,16 @@
     <div class="modal-title">EDITAR DEUDA</div>
     <div class="modal-cliente" id="modal-cliente-nombre">—</div>
     <div class="field">
-      <label>Bandejas que adeuda</label>
-      <input type="number" inputmode="numeric" id="modal-deuda-input" min="0" placeholder="0">
+      <label>Cajones que adeuda</label>
+      <input type="number" inputmode="numeric" id="modal-deuda-cajones" placeholder="0">
+    </div>
+    <div class="field">
+      <label>Bandejas Comunes que adeuda</label>
+      <input type="number" inputmode="numeric" id="modal-deuda-comunes" placeholder="0">
+    </div>
+    <div class="field">
+      <label>Bandejas Romero que adeuda</label>
+      <input type="number" inputmode="numeric" id="modal-deuda-romero" placeholder="0">
     </div>
     <div style="display:flex;gap:8px;margin-top:8px">
       <button class="btn btn-green" id="modal-guardar" style="flex:1;font-size:16px;padding:12px">GUARDAR</button>
@@ -317,13 +358,20 @@
   <div class="modal">
     <div class="modal-title">EDITAR REGISTRO</div>
     <div class="modal-cliente" id="modal-registro-cliente">—</div>
-    <div class="field">
-      <label>Dejan</label>
-      <input type="number" inputmode="numeric" id="modal-registro-dejan" min="0" placeholder="0">
+    <div class="modal-tipo-label">Cajones</div>
+    <div class="modal-par">
+      <div class="field"><label>Dejan</label><input type="number" inputmode="numeric" id="modal-registro-cajones-dejan" min="0" placeholder="0"></div>
+      <div class="field"><label>Devuelven</label><input type="number" inputmode="numeric" id="modal-registro-cajones-devuelven" min="0" placeholder="0"></div>
     </div>
-    <div class="field mb-0">
-      <label>Devuelven</label>
-      <input type="number" inputmode="numeric" id="modal-registro-devuelven" min="0" placeholder="0">
+    <div class="modal-tipo-label">Bandejas Comunes</div>
+    <div class="modal-par">
+      <div class="field"><label>Dejan</label><input type="number" inputmode="numeric" id="modal-registro-comunes-dejan" min="0" placeholder="0"></div>
+      <div class="field"><label>Devuelven</label><input type="number" inputmode="numeric" id="modal-registro-comunes-devuelven" min="0" placeholder="0"></div>
+    </div>
+    <div class="modal-tipo-label">Bandejas Romero</div>
+    <div class="modal-par">
+      <div class="field mb-0"><label>Dejan</label><input type="number" inputmode="numeric" id="modal-registro-romero-dejan" min="0" placeholder="0"></div>
+      <div class="field mb-0"><label>Devuelven</label><input type="number" inputmode="numeric" id="modal-registro-romero-devuelven" min="0" placeholder="0"></div>
     </div>
     <div style="display:flex;gap:8px;margin-top:16px">
       <button class="btn btn-green" id="modal-registro-guardar" style="flex:1;font-size:16px;padding:12px">GUARDAR</button>
