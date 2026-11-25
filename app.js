@@ -747,10 +747,10 @@ function renderTablaRegistros(filas) {
       <td>${f.chofer}</td>
       <td>${f.nombre}</td>
       ${TIPOS.map(t => celdaTipo(f, t.k)).join('')}
-      ${esSoloLectura() ? '' : `<td class="reg-acciones">
+      ${esSoloLectura() ? '' : `<td><div class="reg-acciones">
         <button class="btn-editar" onclick="abrirModalRegistro(${i})">EDITAR</button>
         <button class="btn-eliminar" onclick="eliminarRegistro(${i})">✕</button>
-      </td>`}
+      </div></td>`}
     </tr>`).join('');
 }
 
@@ -940,7 +940,12 @@ window.eliminarRegistro = async function(i) {
   const clientesActualizados = viaje.clientes.filter((_, idx) => idx !== fila.clienteIndex);
 
   try {
-    await updateDoc(doc(db, COL_VIAJES, viaje.firestoreId), { clientes: clientesActualizados });
+    if (clientesActualizados.length === 0) {
+      // Era el último cliente: se borra el viaje entero de Firebase
+      await deleteDoc(doc(db, COL_VIAJES, viaje.firestoreId));
+    } else {
+      await updateDoc(doc(db, COL_VIAJES, viaje.firestoreId), { clientes: clientesActualizados });
+    }
     showToast('✓ Registro eliminado');
   } catch (e) {
     showToast('Error al eliminar registro: ' + e.message, true);
