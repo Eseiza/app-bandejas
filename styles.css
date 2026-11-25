@@ -2023,3 +2023,7 @@ button:disabled,
 /* Modal editar registro */
 .modal-tipo-label { font-family: var(--font-mono); font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--accent); margin: 10px 0 6px; }
 .modal-par { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+
+/* Tabla de registros: celdas alineadas al centro vertical */
+#vis-tbody td { vertical-align: middle; }
